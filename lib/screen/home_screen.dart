@@ -1,6 +1,8 @@
 import 'package:diu_life_save/screen/create_post_screen.dart';
 import 'package:diu_life_save/screen/profile_screen.dart';
 import 'package:diu_life_save/screen/search_screen.dart';
+import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:diu_life_save/util/function.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -24,10 +26,111 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         itemCount: 5,
         itemBuilder: (_, i) => Card(
-          child: ListTile(
-            title: const Text('O+ Blood Needed'),
-            subtitle: const Text('DIU Dhaka'),
-            trailing: const Icon(Icons.bloodtype, color: Colors.red),
+          child:Card(
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// 🔴 TOP ROW
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryRed,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'O+',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Blood Needed',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      /// STATUS
+                      Container(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Pending',
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// 📍 LOCATION
+                  Row(
+                    children: const [
+                      Icon(Icons.location_on_outlined, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'DIU Dhaka',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// 📅 REQUIRED DATE
+                  Row(
+                    children: const [
+                      Icon(Icons.calendar_month_outlined, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'Required by: 15 Feb 2026',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  /// 📞 ACTION
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.call),
+                      label: const Text('Call Donor'),
+                      onPressed: () {
+                        makePhoneCall('017XXXXXXXX');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
