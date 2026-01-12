@@ -1,3 +1,4 @@
+import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,16 +46,33 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 12),
 
             Wrap(
-              spacing: 10,
-              children: bloodGroups.map((group) {
+              spacing: 8,
+              children: bloodGroups.map((bg) {
                 return ChoiceChip(
-                  label: Text(group),
-                  selected: selectedBloodGroup == group,
+                  showCheckmark: false,
+                  avatar: Icon(
+                    Icons.bloodtype,
+                    size: 18,
+                    color: selectedBloodGroup == bg
+                        ? Colors.white
+                        : AppColors.primaryRed,
+                  ),
+                  label: Text(
+                    bg,
+                    style: TextStyle(
+                      color: selectedBloodGroup == bg
+                          ? Colors.white
+                          : AppColors.primaryRed,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  selected: selectedBloodGroup == bg,
+                  selectedColor: AppColors.primaryRed,
+                  backgroundColor: Colors.grey.shade200,
                   onSelected: (_) {
                     setState(() {
-                      selectedBloodGroup = group;
+                      selectedBloodGroup = bg;
                     });
-                    // TODO: Firebase query trigger here
                   },
                 );
               }).toList(),

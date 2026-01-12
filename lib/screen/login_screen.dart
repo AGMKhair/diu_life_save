@@ -53,10 +53,10 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       /// EMAIL
                       TextField(
-                        keyboardType: TextInputType.emailAddress,
+                        keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          labelText: 'Number',
+                          prefixIcon: Icon(Icons.phone),
                         ),
                       ),
 

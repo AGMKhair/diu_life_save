@@ -1,4 +1,5 @@
 import 'package:diu_life_save/screen/home_screen.dart';
+import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -69,10 +70,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       /// EMAIL
                       TextField(
-                        keyboardType: TextInputType.emailAddress,
+                        keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          labelText: 'Number',
+                          prefixIcon: Icon(Icons.phone),
                         ),
                       ),
 
@@ -103,14 +104,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 10),
 
                       Wrap(
-                        spacing: 10,
-                        children: bloodGroups.map((group) {
+                        spacing: 8,
+                        children: bloodGroups.map((bg) {
                           return ChoiceChip(
-                            label: Text(group),
-                            selected: selectedBloodGroup == group,
+                            showCheckmark: false,
+                            avatar: Icon(
+                              Icons.bloodtype,
+                              size: 18,
+                              color: selectedBloodGroup == bg
+                                  ? Colors.white
+                                  : AppColors.primaryRed,
+                            ),
+                            label: Text(
+                              bg,
+                              style: TextStyle(
+                                color: selectedBloodGroup == bg
+                                    ? Colors.white
+                                    : AppColors.primaryRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            selected: selectedBloodGroup == bg,
+                            selectedColor: AppColors.primaryRed,
+                            backgroundColor: Colors.grey.shade200,
                             onSelected: (_) {
                               setState(() {
-                                selectedBloodGroup = group;
+                                selectedBloodGroup = bg;
                               });
                             },
                           );

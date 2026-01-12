@@ -1,3 +1,4 @@
+import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -63,17 +64,32 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     const SizedBox(height: 12),
 
                     Wrap(
-                      spacing: 10,
-                      children: bloodGroups.map((group) {
-                        final bool isSelected =
-                            selectedBloodGroup == group;
-
+                      spacing: 8,
+                      children: bloodGroups.map((bg) {
                         return ChoiceChip(
-                          label: Text(group),
-                          selected: isSelected,
+                          showCheckmark: false,
+                          avatar: Icon(
+                            Icons.bloodtype,
+                            size: 18,
+                            color: selectedBloodGroup == bg
+                                ? Colors.white
+                                : AppColors.primaryRed,
+                          ),
+                          label: Text(
+                            bg,
+                            style: TextStyle(
+                              color: selectedBloodGroup == bg
+                                  ? Colors.white
+                                  : AppColors.primaryRed,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          selected: selectedBloodGroup == bg,
+                          selectedColor: AppColors.primaryRed,
+                          backgroundColor: Colors.grey.shade200,
                           onSelected: (_) {
                             setState(() {
-                              selectedBloodGroup = group;
+                              selectedBloodGroup = bg;
                             });
                           },
                         );
