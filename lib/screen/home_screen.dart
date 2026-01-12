@@ -11,13 +11,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text(
-      //     'DIU LifeSave',
-      //     style: TextStyle(fontWeight: FontWeight.w600),
-      //   ),
-      //   centerTitle: true,
-      // ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -148,7 +141,7 @@ class HomeScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('About DIU LifeSave'),
+        title: const Text('About Campus Blood Donorly'),
         content: const Text(
           'DIU LifeSave is a blood donation platform\n'
               'created to help people find blood donors easily.',

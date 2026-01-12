@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               /// 🩸 APP TITLE
               const Text(
-                'Join DIU LifeSave',
+                'Join Campus Blood Donorly',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

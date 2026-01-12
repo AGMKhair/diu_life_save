@@ -33,13 +33,13 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             // DIU LOGO
             Image.asset(
-              'assets/images/diu_logo.jpeg',
+              'assets/images/diu_logo.png',
               height: 90,
             ),
             const SizedBox(height: 24),
 
             const Text(
-              'DIU LifeSave',
+              'Campus Blood Donorly',
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,

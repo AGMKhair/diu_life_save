@@ -18,7 +18,7 @@ class LoginScreen extends StatelessWidget {
 
               /// 🏫 DIU LOGO
               Image.asset(
-                'assets/images/diu_logo.jpeg',
+                'assets/images/diu_logo.png',
                 height: 90,
               ),
 
@@ -26,7 +26,7 @@ class LoginScreen extends StatelessWidget {
 
               /// 🩸 APP NAME
               const Text(
-                'DIU LifeSave',
+                'Campus Blood Donorly',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
