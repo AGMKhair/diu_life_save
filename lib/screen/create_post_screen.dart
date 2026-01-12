@@ -10,11 +10,18 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  final TextEditingController locationController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController patientNameCtrl = TextEditingController();
+  final TextEditingController problemCtrl = TextEditingController();
+  final TextEditingController unitCtrl = TextEditingController();
+  final TextEditingController hospitalCtrl = TextEditingController();
+  final TextEditingController locationCtrl = TextEditingController();
+  final TextEditingController phoneCtrl = TextEditingController();
+  final TextEditingController noteCtrl = TextEditingController();
 
   String selectedBloodGroup = 'O+';
   DateTime? requiredDate;
+  TimeOfDay? requiredTime;
+  bool isEmergency = false;
 
   final List<String> bloodGroups = [
     'A+', 'A-', 'B+', 'B-',
@@ -28,151 +35,230 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-
     if (picked != null) {
-      setState(() {
-        requiredDate = picked;
-      });
+      setState(() => requiredDate = picked);
+    }
+  }
+
+  Future<void> pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() => requiredTime = picked);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Request Blood'),
-      ),
+      appBar: AppBar(title: const Text('Add Blood Request')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            /// 🔴 MAIN CARD
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                /// 🧑 PATIENT NAME
+                TextField(
+                  controller: patientNameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Patient Name',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// 🩺 PROBLEM
+                TextField(
+                  controller: problemCtrl,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Patient Problem',
+                    prefixIcon: Icon(Icons.medical_information_outlined),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// 🩸 BLOOD GROUP
+                const Text(
+                  'Blood Group',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 10,
+                  children: bloodGroups.map((bg) {
+                    return ChoiceChip(
+                      showCheckmark: false,
+                      avatar: Icon(
+                        Icons.bloodtype,
+                        size: 18,
+                        color: selectedBloodGroup == bg
+                            ? Colors.white
+                            : AppColors.primaryRed,
+                      ),
+                      selected: selectedBloodGroup == bg,
+                      selectedColor: AppColors.primaryRed,
+                      backgroundColor: Colors.grey.shade200,
+                      label: Text(
+                        bg,
+                        style: TextStyle(
+                          color: selectedBloodGroup == bg
+                              ? Colors.white
+                              : AppColors.primaryRed,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onSelected: (_) {
+                        setState(() => selectedBloodGroup = bg);
+                      },
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// 🧪 REQUIRED UNITS
+                TextField(
+                  controller: unitCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Required Units (Bag)',
+                    prefixIcon: Icon(Icons.bloodtype_outlined),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// 🏥 HOSPITAL
+                TextField(
+                  controller: hospitalCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Hospital Name',
+                    prefixIcon: Icon(Icons.local_hospital_outlined),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// 📍 LOCATION
+                TextField(
+                  controller: locationCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Address / Location',
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// 📞 CONTACT
+                TextField(
+                  controller: phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact Number',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// 📅 DATE & TIME
+                Row(
                   children: [
-                    /// 🩸 BLOOD GROUP
-                    const Text(
-                      'Select Blood Group',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Wrap(
-                      spacing: 8,
-                      children: bloodGroups.map((bg) {
-                        return ChoiceChip(
-                          showCheckmark: false,
-                          avatar: Icon(
-                            Icons.bloodtype,
-                            size: 18,
-                            color: selectedBloodGroup == bg
-                                ? Colors.white
-                                : AppColors.primaryRed,
-                          ),
-                          label: Text(
-                            bg,
-                            style: TextStyle(
-                              color: selectedBloodGroup == bg
-                                  ? Colors.white
-                                  : AppColors.primaryRed,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          selected: selectedBloodGroup == bg,
-                          selectedColor: AppColors.primaryRed,
-                          backgroundColor: Colors.grey.shade200,
-                          onSelected: (_) {
-                            setState(() {
-                              selectedBloodGroup = bg;
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    /// 📍 LOCATION
-                    TextField(
-                      controller: locationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Location',
-                        prefixIcon: Icon(Icons.location_on_outlined),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    /// 📞 PHONE
-                    TextField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Contact Number',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    /// 📅 REQUIRED DATE
-                    InkWell(
-                      onTap: pickDate,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 12,
+                    Expanded(
+                      child: InkWell(
+                        onTap: pickDate,
+                        child: _dateTimeBox(
+                          icon: Icons.calendar_month_outlined,
+                          text: requiredDate == null
+                              ? 'Required Date'
+                              : DateFormat('dd MMM yyyy')
+                              .format(requiredDate!),
                         ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.calendar_month_outlined),
-                            const SizedBox(width: 12),
-                            Text(
-                              requiredDate == null
-                                  ? 'Required Date'
-                                  : DateFormat('dd MMM yyyy')
-                                  .format(requiredDate!),
-                              style: TextStyle(
-                                color: requiredDate == null
-                                    ? Colors.grey
-                                    : Colors.black,
-                              ),
-                            ),
-                          ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: pickTime,
+                        child: _dateTimeBox(
+                          icon: Icons.access_time,
+                          text: requiredTime == null
+                              ? 'Required Time'
+                              : requiredTime!.format(context),
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 30),
+                const SizedBox(height: 14),
 
-            /// 🔥 POST BUTTON
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.bloodtype),
-                label: const Text('Post Blood Request'),
-                onPressed: () {
-                  // TODO: Firebase post logic
-                  Navigator.pop(context);
-                },
-              ),
+                /// 🚨 EMERGENCY
+                SwitchListTile(
+                  value: isEmergency,
+                  onChanged: (v) => setState(() => isEmergency = v),
+                  title: const Text('Emergency'),
+                  activeColor: AppColors.primaryRed,
+                ),
+
+                const SizedBox(height: 14),
+
+                /// 📝 NOTES
+                TextField(
+                  controller: noteCtrl,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Additional Notes (Optional)',
+                    prefixIcon: Icon(Icons.note_outlined),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                /// 🔥 SUBMIT
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.send),
+                    label: const Text('Submit Blood Request'),
+                    onPressed: () {
+                      // TODO: Firebase submit
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _dateTimeBox({required IconData icon, required String text}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 10),
+          Text(text),
+        ],
       ),
     );
   }

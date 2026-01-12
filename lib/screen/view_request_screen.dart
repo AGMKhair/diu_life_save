@@ -59,6 +59,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                     /// BLOOD GROUP FILTER
                     Wrap(
                       spacing: 8,
+                      runSpacing: 10,
                       children: bloodGroups.map((bg) {
                         return ChoiceChip(
                           showCheckmark: false,
@@ -156,6 +157,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
 
   /// 🔴 SINGLE REQUEST CARD
   Widget _requestCard() {
+    final bool isEmergency = true; // later from Firebase
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
       elevation: 4,
@@ -167,15 +169,16 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// TOP ROW
+
+            /// 🔴 TOP ROW
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.primaryRed,
                         borderRadius: BorderRadius.circular(20),
@@ -199,18 +202,20 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                   ],
                 ),
 
-                /// STATUS
+                /// STATUS / EMERGENCY
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(.15),
+                    color: isEmergency
+                        ? Colors.red.withOpacity(.15)
+                        : Colors.orange.withOpacity(.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Pending',
+                  child: Text(
+                    isEmergency ? 'Emergency' : 'Pending',
                     style: TextStyle(
-                      color: Colors.orange,
+                      color: isEmergency ? Colors.red : Colors.orange,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -218,34 +223,56 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
               ],
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            /// LOCATION
-            Row(
-              children: const [
-                Icon(Icons.location_on_outlined, size: 18),
-                SizedBox(width: 6),
-                Text('DIU, Dhaka'),
-              ],
+            /// 🧑 PATIENT NAME
+            _infoRow(Icons.person_outline, 'Patient', 'Rahim Uddin'),
+
+            /// 🩺 PROBLEM
+            _infoRow(
+              Icons.medical_information_outlined,
+              'Problem',
+              'Accident – heavy bleeding',
             ),
 
-            const SizedBox(height: 8),
+            /// 🧪 UNITS
+            _infoRow(
+              Icons.bloodtype_outlined,
+              'Required Units',
+              '2 Bags',
+            ),
 
-            /// REQUIRED DATE
-            Row(
-              children: const [
-                Icon(Icons.calendar_month_outlined, size: 18),
-                SizedBox(width: 6),
-                Text(
-                  'Required by: 15 Feb 2026',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ],
+            /// 🏥 HOSPITAL
+            _infoRow(
+              Icons.local_hospital_outlined,
+              'Hospital',
+              'Popular Medical College Hospital',
+            ),
+
+            /// 📍 LOCATION
+            _infoRow(
+              Icons.location_on_outlined,
+              'Location',
+              'Dhanmondi, Dhaka',
+            ),
+
+            /// 📅 DATE & TIME
+            _infoRow(
+              Icons.calendar_month_outlined,
+              'Date & Time',
+              '15 Feb 2026 • 10:30 AM',
+            ),
+
+            /// 📝 NOTES (Optional)
+            _infoRow(
+              Icons.note_outlined,
+              'Notes',
+              'Need blood urgently before surgery',
             ),
 
             const SizedBox(height: 16),
 
-            /// ACTION
+            /// 📞 CALL
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -261,4 +288,32 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
       ),
     );
   }
+
+  Widget _infoRow(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black, fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: '$title: ',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  TextSpan(text: value),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

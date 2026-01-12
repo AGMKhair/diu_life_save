@@ -47,6 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
             Wrap(
               spacing: 8,
+              runSpacing: 10,
               children: bloodGroups.map((bg) {
                 return ChoiceChip(
                   showCheckmark: false,

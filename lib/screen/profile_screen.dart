@@ -27,7 +27,8 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            /// 🔹 PROFILE HEADER CARD
+
+            /// 🔹 HEADER
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -38,7 +39,6 @@ class ProfileScreen extends StatelessWidget {
                       child: Icon(Icons.person, size: 46),
                     ),
                     const SizedBox(height: 14),
-
                     const Text(
                       'AJM Tanvir',
                       style: TextStyle(
@@ -46,51 +46,13 @@ class ProfileScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 6),
-
-                    /// 🩸 BLOOD GROUP BADGE
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'O+',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    /// 🟢 AVAILABILITY
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.circle,
-                              size: 10, color: Colors.green),
-                          SizedBox(width: 6),
-                          Text(
-                            'Available for donation',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
+                    _badge('O+', Colors.red),
+                    const SizedBox(height: 12),
+                    _badgeWithIcon(
+                      'Available for donation',
+                      Icons.circle,
+                      Colors.green,
                     ),
                   ],
                 ),
@@ -99,36 +61,67 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            /// 🔹 INFO SECTION
+            /// 🔹 DETAILS
             Card(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   children: [
-                    _infoTile(
-                      Icons.phone_outlined,
-                      'Phone',
-                      '017XXXXXXXX',
-                    ),
+                    _infoTile(Icons.phone_outlined, 'Mobile Number',
+                        '017XXXXXXXX'),
                     const Divider(),
-                    _infoTile(
-                      Icons.location_on_outlined,
-                      'Location',
-                      'Dhaka',
-                    ),
+                    _infoTile(Icons.cake_outlined, 'Age', '25 Years'),
                     const Divider(),
-                    _infoTile(
-                      Icons.calendar_month_outlined,
-                      'Last Donation',
-                      '12 Jan 2026',
-                    ),
+                    _infoTile(Icons.monitor_weight_outlined, 'Weight',
+                        '65 kg'),
+                    const Divider(),
+                    _infoTile(Icons.location_on_outlined, 'Address',
+                        'Dhaka'),
+                    const Divider(),
+                    _infoTile(Icons.calendar_month_outlined,
+                        'Last Donation', '12 Jan 2026'),
                   ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _badge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _badgeWithIcon(String text, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
@@ -144,21 +137,13 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey,
-                  ),
-                ),
+                Text(title,
+                    style:
+                    const TextStyle(fontSize: 13, color: Colors.grey)),
                 const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
