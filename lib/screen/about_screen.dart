@@ -12,38 +12,17 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryRed,
-        title: const Text('About Us'),
-        centerTitle: true,
-        elevation: 2,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Logo with shadow
-            Container(
+            Image.asset(
+              'assets/images/diu_logo.png',
               height: 100,
-              width: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primaryRed.withOpacity(0.1),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade300,
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.bloodtype,
-                color: AppColors.primaryRed,
-                size: 60,
-              ),
             ),
+
             const SizedBox(height: 16),
 
             // App Name
@@ -66,11 +45,31 @@ class AboutScreen extends StatelessWidget {
               color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: const Text(
-                  'Campus Blood Donorly is a voluntary blood donation platform operated with the support of the Department of Law, Dhaka International University (DIU). '
-                      'The app connects blood donors with patients quickly during emergencies.',
-                  style: TextStyle(fontSize: 16, height: 1.5),
+                child: RichText(
                   textAlign: TextAlign.justify,
+                  text: const TextSpan(
+                    style: TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Colors.black,
+                    ),
+                    children: [
+                      TextSpan(
+                        text:
+                        'Campus Blood Donorly is a voluntary blood donation platform operated with the support of the ',
+                      ),
+                      TextSpan(
+                        text: 'Department of Law, Dhaka International University (DIU). ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text:
+                        'The app connects blood donors with patients quickly during emergencies.',
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
