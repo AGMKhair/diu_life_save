@@ -53,7 +53,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Blood Request')),
+      appBar: AppBar(
+          backgroundColor: AppColors.primaryRed,
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
+          title: const Text('Add Blood Request',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Card(

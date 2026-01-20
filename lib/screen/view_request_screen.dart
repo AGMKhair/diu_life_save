@@ -1,3 +1,4 @@
+import 'package:diu_life_save/screen/create_post_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/function.dart';
@@ -154,7 +155,10 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // এখানে button press action রাখো
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+          );
         },
         backgroundColor: AppColors.primaryRed, // Red color
         child: const Icon(
