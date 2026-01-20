@@ -152,6 +152,16 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // এখানে button press action রাখো
+        },
+        backgroundColor: AppColors.primaryRed, // Red color
+        child: const Icon(
+          Icons.add, // Button icon
+          color: Colors.white,
+        ),
+      ),
     );
   }
 
