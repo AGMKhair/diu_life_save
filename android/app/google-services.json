@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "844681584343",
+    "firebase_url": "https://blood-donation-2d8ff-default-rtdb.firebaseio.com",
+    "project_id": "blood-donation-2d8ff",
+    "storage_bucket": "blood-donation-2d8ff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844681584343:android:74c257188095ef4c0eda92",
+        "android_client_info": {
+          "package_name": "com.spontit.agmkhair.diu_life_save"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPQiYA4c9oosshvAP4QLLi6M86GwqruqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
