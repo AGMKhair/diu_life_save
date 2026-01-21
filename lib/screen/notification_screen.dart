@@ -1,37 +1,89 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
+
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+
+  List<String> myBloodGroups = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getMyBloodGroup();
+  }
+
+  Future<void> getMyBloodGroup() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (doc.exists) {
+      setState(() {
+        myBloodGroups = List<String>.from(doc.data()!['bloodGroup'] ?? []);
+      });
+    }
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getNotificationStream() {
+    // This will show notifications for any of the user's blood groups
+    return FirebaseFirestore.instance
+        .collection('posts')
+        .where('bloodGroup', whereIn: myBloodGroups)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(
-          color: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        title: const Text('Notifications',
-          style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),),
         backgroundColor: AppColors.primaryRed,
         centerTitle: true,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 5, // later: replace with Firebase filtered list
-        itemBuilder: (_, i) {
-          return _requestCard();
+      body: myBloodGroups.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: getNotificationStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+                child: Text("No notifications for your blood group"));
+          }
+
+          final docs = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: docs.length,
+            itemBuilder: (_, index) {
+              final data = docs[index].data();
+              return _requestCard(data);
+            },
+          );
         },
       ),
     );
   }
 
-  Widget _requestCard() {
-    final bool isEmergency = true; // later: dynamic from Firebase
+  Widget _requestCard(Map<String, dynamic> data) {
+    final bool isEmergency = data['isEmergency'] ?? false;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -56,9 +108,9 @@ class NotificationScreen extends StatelessWidget {
                         color: AppColors.primaryRed,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        'O+',
-                        style: TextStyle(
+                      child: Text(
+                        data['bloodGroup'] ?? 'O+',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
@@ -79,7 +131,9 @@ class NotificationScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isEmergency ? Colors.red.withOpacity(.15) : Colors.orange.withOpacity(.15),
+                    color: isEmergency
+                        ? Colors.red.withOpacity(.15)
+                        : Colors.orange.withOpacity(.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -95,13 +149,13 @@ class NotificationScreen extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            _infoRow(Icons.person_outline, 'Patient', 'Rahim Uddin'),
-            _infoRow(Icons.medical_information_outlined, 'Problem', 'Accident – heavy bleeding'),
-            _infoRow(Icons.bloodtype_outlined, 'Required Units', '2 Bags'),
-            _infoRow(Icons.local_hospital_outlined, 'Hospital', 'Popular Medical College Hospital'),
-            _infoRow(Icons.location_on_outlined, 'Location', 'Dhanmondi, Dhaka'),
-            _infoRow(Icons.calendar_month_outlined, 'Date & Time', '15 Feb 2026 • 10:30 AM'),
-            _infoRow(Icons.note_outlined, 'Notes', 'Need blood urgently before surgery'),
+            _infoRow(Icons.person_outline, 'Patient', data['patientName'] ?? 'Unknown'),
+            _infoRow(Icons.medical_information_outlined, 'Problem', data['problem'] ?? 'Unknown'),
+            _infoRow(Icons.bloodtype_outlined, 'Required Units', data['units'] ?? '0'),
+            _infoRow(Icons.local_hospital_outlined, 'Hospital', data['hospital'] ?? 'Unknown'),
+            _infoRow(Icons.location_on_outlined, 'Location', data['location'] ?? 'Unknown'),
+            _infoRow(Icons.calendar_month_outlined, 'Date & Time', data['dateTime'] ?? 'Unknown'),
+            _infoRow(Icons.note_outlined, 'Notes', data['notes'] ?? 'None'),
 
             const SizedBox(height: 16),
 
@@ -119,7 +173,7 @@ class NotificationScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 onPressed: () {
-                  makePhoneCall('017XXXXXXXX');
+                  makePhoneCall(data['phone'] ?? '017XXXXXXXX');
                 },
               ),
             ),
@@ -160,9 +214,6 @@ class NotificationScreen extends StatelessWidget {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
-    } else {
-      // ignore: avoid_print
-      print('Could not launch $phoneNumber');
     }
   }
 }

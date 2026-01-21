@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -49,6 +52,45 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       setState(() => requiredTime = picked);
     }
   }
+
+  Future<void> submitPost() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final requiredDateTime = DateTime(
+      requiredDate!.year,
+      requiredDate!.month,
+      requiredDate!.day,
+      requiredTime!.hour,
+      requiredTime!.minute,
+    );
+
+    final expireAt = requiredDateTime.add(const Duration(hours: 24));
+
+    final model = BloodRequestModel(
+      id: "",
+      uid: user.uid,
+      patientName: patientNameCtrl.text.trim(),
+      problem: problemCtrl.text.trim(),
+      bloodGroup: selectedBloodGroup,
+      units: int.parse(unitCtrl.text.trim()),
+      hospital: hospitalCtrl.text.trim(),
+      location: locationCtrl.text.trim(),
+      phone: phoneCtrl.text.trim(),
+      note: noteCtrl.text.trim(),
+      isEmergency: isEmergency,
+      requiredDateTime: requiredDateTime,
+      createdAt: DateTime.now(),
+      expireAt: expireAt,
+    );
+
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .add(model.toMap());
+
+    Navigator.pop(context);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -242,8 +284,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     icon: const Icon(Icons.send),
                     label: const Text('Submit Blood Request'),
                     onPressed: () {
-                      // TODO: Firebase submit
-                      Navigator.pop(context);
+                      submitPost();
                     },
                   ),
                 ),

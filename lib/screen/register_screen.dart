@@ -84,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         department: departmentController.text.trim(),
         area: selectedArea,
         bloodGroup: selectedBloodGroup,
-        lastDonationDate: lastDonationDate,
+        lastDonationDate: lastDonationDate, age: 0, weight: 0, isAvailable: true,
       );
 
       await FirebaseFirestore.instance

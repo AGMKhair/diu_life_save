@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +17,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   File? profileImage;
 
-  final nameController = TextEditingController(text: 'AJM Tanvir');
+  final nameController = TextEditingController();
   final phoneController = TextEditingController();
   final ageController = TextEditingController();
   final weightController = TextEditingController();
@@ -47,6 +50,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (picked != null) {
       setState(() => lastDonateDate = picked);
     }
+  }
+
+  Future<void> saveProfile() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final model = DonorModel(
+      id: uid,
+      name: nameController.text.trim(),
+      phone: phoneController.text.trim(),
+      department: '', // can be empty
+      age: int.tryParse(ageController.text.trim()) ?? 0,
+      weight: int.tryParse(weightController.text.trim()) ?? 0,
+      bloodGroup: selectedBloodGroup,
+      area: selectedLocation,
+      isAvailable: isAvailable,
+      lastDonationDate: lastDonateDate,
+      profileImage: null, // for now
+    );
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .set(model.toMap(), SetOptions(merge: true));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile Updated Successfully')),
+    );
+
+    Navigator.pop(context);
   }
 
   @override
@@ -158,7 +190,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.save),
                 label: const Text('Save Profile'),
-                onPressed: () {},
+                onPressed: saveProfile,
               ),
             ),
           ],

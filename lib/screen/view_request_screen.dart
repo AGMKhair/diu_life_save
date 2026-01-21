@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/screen/create_post_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/function.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class ViewRequestScreen extends StatefulWidget {
@@ -143,11 +145,49 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
 
           /// 📋 REQUEST LIST
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 5, // later: Firebase filtered list
-              itemBuilder: (_, i) {
-                return _requestCard();
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('posts')
+                  .orderBy("createdAt", descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text("No requests found"));
+                }
+
+                final allPosts = snapshot.data!.docs
+                    .map((e) => BloodRequestModel.fromMap(
+                    e.data() as Map<String, dynamic>, e.id))
+                    .toList();
+
+                // FILTER
+                final filteredPosts = allPosts.where((post) {
+                  final matchBlood = selectedBloodGroup == 'All' ||
+                      post.bloodGroup == selectedBloodGroup;
+
+                  final matchDate = selectedDate == null ||
+                      DateFormat('dd-MM-yyyy')
+                          .format(post.requiredDateTime) ==
+                          DateFormat('dd-MM-yyyy').format(selectedDate!);
+
+                  return matchBlood && matchDate;
+                }).toList();
+
+                if (filteredPosts.isEmpty) {
+                  return const Center(child: Text("No requests found"));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredPosts.length,
+                  itemBuilder: (_, i) {
+                    return _requestCard(filteredPosts[i]);
+                  },
+                );
               },
             ),
           ),
@@ -160,9 +200,9 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
             MaterialPageRoute(builder: (_) => const CreatePostScreen()),
           );
         },
-        backgroundColor: AppColors.primaryRed, // Red color
+        backgroundColor: AppColors.primaryRed,
         child: const Icon(
-          Icons.add, // Button icon
+          Icons.add,
           color: Colors.white,
         ),
       ),
@@ -170,8 +210,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
   }
 
   /// 🔴 SINGLE REQUEST CARD
-  Widget _requestCard() {
-    final bool isEmergency = true; // later from Firebase
+  Widget _requestCard(BloodRequestModel post) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
       elevation: 4,
@@ -183,7 +222,6 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             /// 🔴 TOP ROW
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,15 +229,15 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                 Row(
                   children: [
                     Container(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.primaryRed,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        'O+',
-                        style: TextStyle(
+                      child: Text(
+                        post.bloodGroup,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
@@ -221,15 +259,15 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isEmergency
+                    color: post.isEmergency
                         ? Colors.red.withOpacity(.15)
                         : Colors.orange.withOpacity(.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isEmergency ? 'Emergency' : 'Pending',
+                    post.isEmergency ? 'Emergency' : 'Pending',
                     style: TextStyle(
-                      color: isEmergency ? Colors.red : Colors.orange,
+                      color: post.isEmergency ? Colors.red : Colors.orange,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -240,49 +278,34 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
             const SizedBox(height: 12),
 
             /// 🧑 PATIENT NAME
-            _infoRow(Icons.person_outline, 'Patient', 'Rahim Uddin'),
+            _infoRow(Icons.person_outline, 'Patient', post.patientName),
 
             /// 🩺 PROBLEM
-            _infoRow(
-              Icons.medical_information_outlined,
-              'Problem',
-              'Accident – heavy bleeding',
-            ),
+            _infoRow(Icons.medical_information_outlined, 'Problem', post.problem),
 
             /// 🧪 UNITS
             _infoRow(
               Icons.bloodtype_outlined,
               'Required Units',
-              '2 Bags',
+              '${post.units} Bags',
             ),
 
             /// 🏥 HOSPITAL
-            _infoRow(
-              Icons.local_hospital_outlined,
-              'Hospital',
-              'Popular Medical College Hospital',
-            ),
+            _infoRow(Icons.local_hospital_outlined, 'Hospital', post.hospital),
 
             /// 📍 LOCATION
-            _infoRow(
-              Icons.location_on_outlined,
-              'Location',
-              'Dhanmondi, Dhaka',
-            ),
+            _infoRow(Icons.location_on_outlined, 'Location', post.location),
 
             /// 📅 DATE & TIME
             _infoRow(
               Icons.calendar_month_outlined,
               'Date & Time',
-              '15 Feb 2026 • 10:30 AM',
+              DateFormat('dd MMM yyyy • hh:mm a')
+                  .format(post.requiredDateTime),
             ),
 
             /// 📝 NOTES (Optional)
-            _infoRow(
-              Icons.note_outlined,
-              'Notes',
-              'Need blood urgently before surgery',
-            ),
+            _infoRow(Icons.note_outlined, 'Notes', post.note),
 
             const SizedBox(height: 16),
 
@@ -293,7 +316,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                 icon: const Icon(Icons.call),
                 label: const Text('Call Requester'),
                 onPressed: () {
-                  makePhoneCall('017XXXXXXXX');
+                  makePhoneCall(post.phone);
                 },
               ),
             ),
@@ -329,5 +352,4 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
       ),
     );
   }
-
 }
