@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,6 +25,23 @@ class _SearchScreenState extends State<SearchScreen> {
       await launchUrl(uri);
     }
   }
+
+
+  Future<List<DonorModel>> searchDonors({
+    required String bloodGroup,
+    required String area,
+  }) async {
+    final query = await FirebaseFirestore.instance
+        .collection('users')
+        .where('bloodGroup', isEqualTo: bloodGroup)
+        .where('area', isEqualTo: area)
+        .get();
+
+    return query.docs
+        .map((doc) => DonorModel.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
 
   @override
   Widget build(BuildContext context) {

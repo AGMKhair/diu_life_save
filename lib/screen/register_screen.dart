@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -14,11 +17,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String selectedBloodGroup = 'O+';
   String selectedArea = 'Dhaka';
   DateTime? lastDonationDate;
+  bool isLoading = false;
 
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
+  final departmentController = TextEditingController();
 
   final List<String> bloodGroups = [
-    'A+', 'A-', 'B+', 'B-',
-    'O+', 'O-', 'AB+', 'AB-'
+    'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'
   ];
 
   final List<String> areas = [
@@ -32,7 +39,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Mymensingh',
   ];
 
-
   Future<void> pickLastDonationDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -42,176 +48,193 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (picked != null) {
-      setState(() {
-        lastDonationDate = picked;
-      });
+      setState(() => lastDonationDate = picked);
     }
   }
 
+  Future<void> registerDonor() async {
+    if (nameController.text.isEmpty ||
+        phoneController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        departmentController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
+    try {
+      setState(() => isLoading = true);
+
+      final phone = phoneController.text.trim();
+      final email = "$phone@diu.com";
+
+      final cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: email,
+        password: passwordController.text,
+      );
+
+      final uid = cred.user!.uid;
+
+      final donor = DonorModel(
+        id: uid,
+        name: nameController.text.trim(),
+        phone: phone,
+        department: departmentController.text.trim(),
+        area: selectedArea,
+        bloodGroup: selectedBloodGroup,
+        lastDonationDate: lastDonationDate,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .set(donor.toMap());
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Registration failed')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Create Account')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Text(
-                'Join Campus Blood Donorly',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Be a part of the blood donor community',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 30),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Text(
+              'Join Campus Blood Donorly',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 30),
 
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      /// FULL NAME
-                      const _Field(
-                        label: 'Full Name',
-                        icon: Icons.person_outline,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+
+                    _Field(
+                      label: 'Full Name',
+                      icon: Icons.person_outline,
+                      controller: nameController,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _Field(
+                      label: 'Mobile Number',
+                      icon: Icons.phone,
+                      type: TextInputType.phone,
+                      controller: phoneController,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _Field(
+                      label: 'Password',
+                      icon: Icons.lock_outline,
+                      controller: passwordController,
+                      isPassword: true,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _Field(
+                      label: 'Department',
+                      icon: Icons.school_outlined,
+                      controller: departmentController,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      value: selectedArea,
+                      items: areas
+                          .map((a) => DropdownMenuItem(
+                        value: a,
+                        child: Text(a),
+                      ))
+                          .toList(),
+                      onChanged: (v) => setState(() => selectedArea = v!),
+                      decoration: const InputDecoration(
+                        labelText: 'Area / Location',
+                        prefixIcon: Icon(Icons.location_on_outlined),
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
-                      /// MOBILE
-                      const _Field(
-                        label: 'Mobile Number',
-                        icon: Icons.phone,
-                        type: TextInputType.phone,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      /// DEPARTMENT
-                      const _Field(
-                        label: 'Department',
-                        icon: Icons.school_outlined,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      /// AREA
-                      DropdownButtonFormField<String>(
-                        value: selectedArea,
-                        items: areas
-                            .map((a) =>
-                            DropdownMenuItem(value: a, child: Text(a)))
-                            .toList(),
-                        onChanged: (v) => setState(() => selectedArea = v!),
-                        decoration: const InputDecoration(
-                          labelText: 'Area / Location',
-                          prefixIcon: Icon(Icons.location_on_outlined),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      /// BLOOD GROUP
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Blood Group',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700,
+                    Wrap(
+                      spacing: 8,
+                      children: bloodGroups.map((bg) {
+                        return ChoiceChip(
+                          selected: selectedBloodGroup == bg,
+                          label: Text(bg),
+                          selectedColor: AppColors.primaryRed,
+                          labelStyle: TextStyle(
+                            color: selectedBloodGroup == bg
+                                ? Colors.white
+                                : Colors.black,
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                          onSelected: (_) =>
+                              setState(() => selectedBloodGroup = bg),
+                        );
+                      }).toList(),
+                    ),
 
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 10,
-                        children: bloodGroups.map((bg) {
-                          return ChoiceChip(
-                            showCheckmark: false,
-                            selected: selectedBloodGroup == bg,
-                            selectedColor: AppColors.primaryRed,
-                            backgroundColor: Colors.grey.shade200,
-                            label: Text(
-                              bg,
-                              style: TextStyle(
-                                color: selectedBloodGroup == bg
-                                    ? Colors.white
-                                    : AppColors.primaryRed,
-                                fontWeight: FontWeight.w600,
-                              ),
+                    const SizedBox(height: 16),
+
+                    InkWell(
+                      onTap: pickLastDonationDate,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_month_outlined),
+                            const SizedBox(width: 10),
+                            Text(
+                              lastDonationDate == null
+                                  ? 'Last Blood Donation Date'
+                                  : DateFormat('dd MMM yyyy')
+                                  .format(lastDonationDate!),
                             ),
-                            onSelected: (_) =>
-                                setState(() => selectedBloodGroup = bg),
-                          );
-                        }).toList(),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      /// 🩸 LAST DONATION DATE
-                      InkWell(
-                        onTap: pickLastDonationDate,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.calendar_month_outlined),
-                              const SizedBox(width: 10),
-                              Text(
-                                lastDonationDate == null
-                                    ? 'Last Blood Donation Date'
-                                    : DateFormat('dd MMM yyyy').format(lastDonationDate!),
-                                style: TextStyle(
-                                  color: lastDonationDate == null
-                                      ? Colors.grey
-                                      : Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
+                    ),
 
+                    const SizedBox(height: 30),
 
-                      const SizedBox(height: 30),
-
-                      /// REGISTER
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const HomeScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text('Register'),
-                        ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : registerDonor,
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Register'),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Already have an account? Login'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -222,17 +245,23 @@ class _Field extends StatelessWidget {
   final String label;
   final IconData icon;
   final TextInputType type;
+  final TextEditingController controller;
+  final bool isPassword;
 
   const _Field({
     required this.label,
     required this.icon,
+    required this.controller,
     this.type = TextInputType.text,
+    this.isPassword = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       keyboardType: type,
+      obscureText: isPassword,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
