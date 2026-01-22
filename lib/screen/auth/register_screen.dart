@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +26,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final departmentController = TextEditingController();
 
   final List<String> bloodGroups = [
-    'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'O+',
+    'O-',
+    'AB+',
+    'AB-',
   ];
 
   final List<String> areas = [
@@ -69,8 +77,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final phone = phoneController.text.trim();
       final email = "$phone@diu.com";
 
-      final cred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: passwordController.text,
       );
@@ -84,7 +91,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         department: departmentController.text.trim(),
         area: selectedArea,
         bloodGroup: selectedBloodGroup,
-        lastDonationDate: lastDonationDate, age: 0, weight: 0, isAvailable: true,
+        lastDonationDate: lastDonationDate,
+        age: 0,
+        weight: 0,
+        isAvailable: true,
       );
 
       await FirebaseFirestore.instance
@@ -95,13 +105,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
-            (route) => false,
+        (route) => false,
       );
-
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Registration failed')),
-      );
+      AppSnackBar.showError(context, message: 'Registration failed try again.');
     } finally {
       setState(() => isLoading = false);
     }
@@ -126,7 +133,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-
                     _Field(
                       label: 'Full Name',
                       icon: Icons.person_outline,
@@ -164,10 +170,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     DropdownButtonFormField<String>(
                       value: selectedArea,
                       items: areas
-                          .map((a) => DropdownMenuItem(
-                        value: a,
-                        child: Text(a),
-                      ))
+                          .map(
+                            (a) => DropdownMenuItem(value: a, child: Text(a)),
+                          )
                           .toList(),
                       onChanged: (v) => setState(() => selectedArea = v!),
                       decoration: const InputDecoration(
@@ -213,8 +218,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Text(
                               lastDonationDate == null
                                   ? 'Last Blood Donation Date'
-                                  : DateFormat('dd MMM yyyy')
-                                  .format(lastDonationDate!),
+                                  : DateFormat(
+                                      'dd MMM yyyy',
+                                    ).format(lastDonationDate!),
                             ),
                           ],
                         ),
@@ -228,7 +234,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: ElevatedButton(
                         onPressed: isLoading ? null : registerDonor,
                         child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
                             : const Text('Register'),
                       ),
                     ),
@@ -264,10 +272,7 @@ class _Field extends StatelessWidget {
       controller: controller,
       keyboardType: type,
       obscureText: isPassword,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-      ),
+      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
     );
   }
 }

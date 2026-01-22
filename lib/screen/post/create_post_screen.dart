@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -27,8 +28,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool isEmergency = false;
 
   final List<String> bloodGroups = [
-    'A+', 'A-', 'B+', 'B-',
-    'O+', 'O-', 'AB+', 'AB-'
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'O+',
+    'O-',
+    'AB+',
+    'AB-',
   ];
 
   Future<void> pickDate() async {
@@ -54,57 +61,57 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> submitPost() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
 
-    final requiredDateTime = DateTime(
-      requiredDate!.year,
-      requiredDate!.month,
-      requiredDate!.day,
-      requiredTime!.hour,
-      requiredTime!.minute,
-    );
+      final requiredDateTime = DateTime(
+        requiredDate!.year,
+        requiredDate!.month,
+        requiredDate!.day,
+        requiredTime!.hour,
+        requiredTime!.minute,
+      );
 
-    final expireAt = requiredDateTime.add(const Duration(hours: 24));
+      final expireAt = requiredDateTime.add(const Duration(hours: 24));
 
-    final model = BloodRequestModel(
-      id: "",
-      uid: user.uid,
-      patientName: patientNameCtrl.text.trim(),
-      problem: problemCtrl.text.trim(),
-      bloodGroup: selectedBloodGroup,
-      units: int.parse(unitCtrl.text.trim()),
-      hospital: hospitalCtrl.text.trim(),
-      location: locationCtrl.text.trim(),
-      phone: phoneCtrl.text.trim(),
-      note: noteCtrl.text.trim(),
-      isEmergency: isEmergency,
-      requiredDateTime: requiredDateTime,
-      createdAt: DateTime.now(),
-      expireAt: expireAt,
-    );
+      final model = BloodRequestModel(
+        id: "",
+        uid: user.uid,
+        patientName: patientNameCtrl.text.trim(),
+        problem: problemCtrl.text.trim(),
+        bloodGroup: selectedBloodGroup,
+        units: int.parse(unitCtrl.text.trim()),
+        hospital: hospitalCtrl.text.trim(),
+        location: locationCtrl.text.trim(),
+        phone: phoneCtrl.text.trim(),
+        note: noteCtrl.text.trim(),
+        isEmergency: isEmergency,
+        requiredDateTime: requiredDateTime,
+        createdAt: DateTime.now(),
+        expireAt: expireAt,
+      );
 
-    await FirebaseFirestore.instance
-        .collection('posts')
-        .add(model.toMap());
+      await FirebaseFirestore.instance.collection('posts').add(model.toMap());
 
-    Navigator.pop(context);
+      AppSnackBar.showSuccess(context, message: "Your blood request completed");
+      Navigator.pop(context);
+    } catch (e) {
+      AppSnackBar.showError(context);
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: AppColors.primaryRed,
-          iconTheme: const IconThemeData(
-            color: Colors.white,
-          ),
-          title: const Text('Add Blood Request',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ))),
+        backgroundColor: AppColors.primaryRed,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Add Blood Request',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Card(
@@ -113,7 +120,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 /// 🧑 PATIENT NAME
                 TextField(
                   controller: patientNameCtrl,
@@ -233,8 +239,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           icon: Icons.calendar_month_outlined,
                           text: requiredDate == null
                               ? 'Required Date'
-                              : DateFormat('dd MMM yyyy')
-                              .format(requiredDate!),
+                              : DateFormat('dd MMM yyyy').format(requiredDate!),
                         ),
                       ),
                     ),
@@ -303,13 +308,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         border: Border.all(color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        children: [
-          Icon(icon),
-          const SizedBox(width: 10),
-          Text(text),
-        ],
-      ),
+      child: Row(children: [Icon(icon), const SizedBox(width: 10), Text(text)]),
     );
   }
 }

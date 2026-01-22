@@ -1,8 +1,8 @@
 import 'package:diu_life_save/screen/about_screen.dart';
 import 'package:diu_life_save/screen/notification_screen.dart';
-import 'package:diu_life_save/screen/profile_screen.dart';
+import 'package:diu_life_save/screen/profile/profile_screen.dart';
 import 'package:diu_life_save/screen/search_screen.dart';
-import 'package:diu_life_save/screen/view_request_screen.dart';
+import 'package:diu_life_save/screen/post/view_request_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 

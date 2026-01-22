@@ -33,6 +33,34 @@ class BloodRequestModel {
     required this.expireAt,
   });
 
+
+
+  /// 🔽 Firestore → Model
+  factory BloodRequestModel.fromFirestore(
+      DocumentSnapshot doc,
+      ) {
+    final map = doc.data() as Map<String, dynamic>;
+
+    return BloodRequestModel(
+      id: doc.id,
+      uid: map['uid'] ?? '',
+      patientName: map['patientName'] ?? '',
+      problem: map['problem'] ?? '',
+      bloodGroup: map['bloodGroup'] ?? '',
+      units: (map['units'] ?? 0).toInt(),
+      hospital: map['hospital'] ?? '',
+      location: map['location'] ?? '',
+      phone: map['phone'] ?? '',
+      note: map['note'] ?? '',
+      isEmergency: map['isEmergency'] ?? false,
+      requiredDateTime:
+      (map['requiredDateTime'] as Timestamp).toDate(),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      expireAt: (map['expireAt'] as Timestamp).toDate(),
+    );
+  }
+
+
   factory BloodRequestModel.fromMap(Map<String, dynamic> map, String docId) {
     return BloodRequestModel(
       id: docId,

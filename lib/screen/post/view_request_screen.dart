@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/blood_request_model.dart';
-import 'package:diu_life_save/screen/create_post_screen.dart';
+import 'package:diu_life_save/screen/post/create_post_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/function.dart';
 import 'package:flutter/material.dart';
