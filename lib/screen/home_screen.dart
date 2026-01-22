@@ -1,9 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/screen/about_screen.dart';
 import 'package:diu_life_save/screen/notification_screen.dart';
 import 'package:diu_life_save/screen/profile/profile_screen.dart';
 import 'package:diu_life_save/screen/search_screen.dart';
 import 'package:diu_life_save/screen/post/view_request_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,7 +20,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   /// Example notification count
-  int _notificationCount = 3; // এখানে যত notifications থাকবে
+  String myBloodGroup = '';
+  int _notificationCount = 0; // এখানে যত notifications থাকবে
+
+  @override
+  void initState() {
+    super.initState();
+    getNotificationCount();
+  }
 
   final List<Widget> _screens = const [
     ViewRequestScreen(),
@@ -25,6 +35,32 @@ class _HomeScreenState extends State<HomeScreen> {
     ProfileScreen(),
     AboutScreen(),
   ];
+
+  getNotificationCount() async {
+    await _loadMyBloodGroup();
+    final snapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .where('bloodGroup', isEqualTo: myBloodGroup)
+        .get();
+
+    setState(() => _notificationCount = snapshot.docs.length);
+  }
+
+  Future<void> _loadMyBloodGroup() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+
+    if (doc.exists) {
+      final donor = DonorModel.fromMap(doc.id, doc.data()!);
+      setState(() {
+        myBloodGroup = donor.bloodGroup;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         title: const Text(
           'Campus Blood Donorly',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
           Padding(
@@ -47,14 +80,19 @@ class _HomeScreenState extends State<HomeScreen> {
               clipBehavior: Clip.none,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_none, color: Colors.white),
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    color: Colors.white,
+                  ),
                   onPressed: () {
                     // Notification screen logic
                     setState(() {
                       _notificationCount = 0; // Example: clear after opening
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationScreen(),
+                        ),
                       );
                     });
                   },
@@ -107,18 +145,12 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: 'Available Donor',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           BottomNavigationBarItem(
             icon: Icon(Icons.info_outline),
             label: 'About Us',

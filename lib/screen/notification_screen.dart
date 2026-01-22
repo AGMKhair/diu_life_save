@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/model/blood_request_model.dart';
+import 'package:diu_life_save/model/donor_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
@@ -12,32 +14,36 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-
-  List<String> myBloodGroups = [];
+  String myBloodGroup = '';
 
   @override
   void initState() {
     super.initState();
-    getMyBloodGroup();
+    _loadMyBloodGroup();
   }
 
-  Future<void> getMyBloodGroup() async {
+  /// 🔹 Logged in user blood group
+  Future<void> _loadMyBloodGroup() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
 
     if (doc.exists) {
+      final donor = DonorModel.fromMap(doc.id, doc.data()!);
       setState(() {
-        myBloodGroups = List<String>.from(doc.data()!['bloodGroup'] ?? []);
+        myBloodGroup = donor.bloodGroup;
       });
     }
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getNotificationStream() {
-    // This will show notifications for any of the user's blood groups
+  /// 🔥 Active notifications stream
+  Stream<QuerySnapshot> _notificationStream() {
     return FirebaseFirestore.instance
         .collection('posts')
-        .where('bloodGroup', whereIn: myBloodGroups)
-        .orderBy('createdAt', descending: true)
+        .where('bloodGroup', isEqualTo: myBloodGroup)
         .snapshots();
   }
 
@@ -45,18 +51,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: AppColors.primaryRed,
         title: const Text(
           'Notifications',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColors.primaryRed,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: myBloodGroups.isEmpty
+      body: myBloodGroup.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: getNotificationStream(),
+          : StreamBuilder<QuerySnapshot>(
+        stream: _notificationStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -64,17 +70,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
-                child: Text("No notifications for your blood group"));
+              child: Text('No active requests for your blood group'),
+            );
           }
 
-          final docs = snapshot.data!.docs;
+          final requests = snapshot.data!.docs
+              .map((doc) => BloodRequestModel.fromFirestore(doc))
+              .toList();
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
+            itemCount: requests.length,
             itemBuilder: (_, index) {
-              final data = docs[index].data();
-              return _requestCard(data);
+              return _requestCard(requests[index]);
             },
           );
         },
@@ -82,9 +90,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _requestCard(Map<String, dynamic> data) {
-    final bool isEmergency = data['isEmergency'] ?? false;
-
+  /// 🩸 REQUEST CARD
+  Widget _requestCard(BloodRequestModel data) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
       elevation: 4,
@@ -96,70 +103,42 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔴 TOP ROW
+            /// 🔴 TOP
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryRed,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        data['bloodGroup'] ?? 'O+',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    _bloodBadge(data.bloodGroup),
                     const SizedBox(width: 10),
                     const Text(
                       'Blood Needed',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style:
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
-
-                /// STATUS / EMERGENCY
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isEmergency
-                        ? Colors.red.withOpacity(.15)
-                        : Colors.orange.withOpacity(.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    isEmergency ? 'Emergency' : 'Pending',
-                    style: TextStyle(
-                      color: isEmergency ? Colors.red : Colors.orange,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                _statusBadge(data.isEmergency),
               ],
             ),
 
             const SizedBox(height: 12),
 
-            _infoRow(Icons.person_outline, 'Patient', data['patientName'] ?? 'Unknown'),
-            _infoRow(Icons.medical_information_outlined, 'Problem', data['problem'] ?? 'Unknown'),
-            _infoRow(Icons.bloodtype_outlined, 'Required Units', data['units'] ?? '0'),
-            _infoRow(Icons.local_hospital_outlined, 'Hospital', data['hospital'] ?? 'Unknown'),
-            _infoRow(Icons.location_on_outlined, 'Location', data['location'] ?? 'Unknown'),
-            _infoRow(Icons.calendar_month_outlined, 'Date & Time', data['dateTime'] ?? 'Unknown'),
-            _infoRow(Icons.note_outlined, 'Notes', data['notes'] ?? 'None'),
+            _infoRow(Icons.person, 'Patient', data.patientName),
+            _infoRow(Icons.medical_services, 'Problem', data.problem),
+            _infoRow(Icons.bloodtype, 'Units', data.units.toString()),
+            _infoRow(Icons.local_hospital, 'Hospital', data.hospital),
+            _infoRow(Icons.location_on, 'Location', data.location),
+            _infoRow(
+              Icons.calendar_month,
+              'Required',
+              _formatDate(data.requiredDateTime),
+            ),
+            _infoRow(Icons.note, 'Note', data.note.isNotEmpty ? data.note : '—'),
 
             const SizedBox(height: 16),
 
-            /// 📞 CALL BUTTON
+            /// 📞 CALL
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -167,18 +146,48 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 label: const Text('Call Requester'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryRed,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                onPressed: () {
-                  makePhoneCall(data['phone'] ?? '017XXXXXXXX');
-                },
+                onPressed: () => _callNumber(data.phone),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 🩸 Blood badge
+  Widget _bloodBadge(String group) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.primaryRed,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        group,
+        style: const TextStyle(
+            color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  /// 🚨 Status badge
+  Widget _statusBadge(bool emergency) {
+    final color = emergency ? Colors.red : Colors.orange;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        emergency ? 'Emergency' : 'Normal',
+        style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -194,11 +203,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                style:
+                const TextStyle(color: Colors.black, fontSize: 14),
                 children: [
                   TextSpan(
                     text: '$title: ',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style:
+                    const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   TextSpan(text: value),
                 ],
@@ -210,10 +221,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  void makePhoneCall(String phoneNumber) async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  void _callNumber(String phone) async {
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     }
   }
 }
