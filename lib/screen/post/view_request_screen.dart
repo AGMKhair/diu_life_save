@@ -50,19 +50,18 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
       ),
       body: Column(
         children: [
-          /// 🔍 FILTER SECTION
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Card(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(5),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     /// BLOOD GROUP FILTER
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 10,
+                      spacing: 4,
+                      // runSpacing: 4,
                       children: bloodGroups.map((bg) {
                         return ChoiceChip(
                           showCheckmark: false,
@@ -94,7 +93,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                       }).toList(),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 5),
 
                     /// DATE FILTER
                     Row(
@@ -104,7 +103,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                             onTap: pickDate,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 12),
+                                  vertical: 5, horizontal: 12),
                               decoration: BoxDecoration(
                                 border:
                                 Border.all(color: Colors.grey.shade400),

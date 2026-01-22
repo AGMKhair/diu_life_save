@@ -150,8 +150,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
                 const SizedBox(height: 10),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 10,
+                  spacing: 5,
                   children: bloodGroups.map((bg) {
                     return ChoiceChip(
                       showCheckmark: false,
@@ -230,32 +229,29 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 const SizedBox(height: 20),
 
                 /// 📅 DATE & TIME
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: pickDate,
-                        child: _dateTimeBox(
-                          icon: Icons.calendar_month_outlined,
-                          text: requiredDate == null
-                              ? 'Required Date'
-                              : DateFormat('dd MMM yyyy').format(requiredDate!),
-                        ),
-                      ),
+
+                Container(
+                  child: InkWell(
+                    onTap: pickDate,
+                    child: _dateTimeBox(
+                      icon: Icons.calendar_month_outlined,
+                      text: requiredDate == null
+                          ? 'Required Date'
+                          : DateFormat('dd MMM yyyy').format(requiredDate!),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: InkWell(
-                        onTap: pickTime,
-                        child: _dateTimeBox(
-                          icon: Icons.access_time,
-                          text: requiredTime == null
-                              ? 'Required Time'
-                              : requiredTime!.format(context),
-                        ),
-                      ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  child: InkWell(
+                    onTap: pickTime,
+                    child: _dateTimeBox(
+                      icon: Icons.access_time,
+                      text: requiredTime == null
+                          ? 'Required Time'
+                          : requiredTime!.format(context),
                     ),
-                  ],
+                  ),
                 ),
 
                 const SizedBox(height: 14),

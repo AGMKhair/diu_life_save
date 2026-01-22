@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/screen/post/post_edit_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +64,6 @@ class PostDetailsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// 🩸 Top row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -74,43 +74,91 @@ class PostDetailsScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (post.isEmergency)
-                            const Chip(
-                              label: Text(
-                                'Emergency',
-                                style: TextStyle(color: Colors.white),
+                          Row(
+                            children: [
+                              if (post.isEmergency)
+                                const Chip(
+                                  label: Text(
+                                    'E',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditPostScreen(model: post),
+                                    ),
+                                  );
+                                },
                               ),
-                              backgroundColor: Colors.red,
-                            ),
+
+                              /// 🔴 DELETE BUTTON
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_sweep,
+                                  color: AppColors.primaryRed,
+                                ),
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (_) {
+                                      return AlertDialog(
+                                        title: const Text('Delete Post'),
+                                        content: const Text(
+                                          'Are you sure you want to delete this request?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+
+                                  if (confirm == true) {
+                                    await FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .doc(post.id)
+                                        .delete();
+
+                                    AppSnackBar.showSuccess(
+                                      context,
+                                      message: 'Post deleted successfully',
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-
                       const SizedBox(height: 8),
-
                       Text('Patient: ${post.patientName}'),
                       Text('Hospital: ${post.hospital}'),
                       Text('Location: ${post.location}'),
                       Text('Phone: ${post.phone}'),
                       Text('Problem: ${post.problem}'),
-
-                      const SizedBox(height: 12),
-
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => EditPostScreen(
-                                  model: post,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
                     ],
                   ),
                 ),

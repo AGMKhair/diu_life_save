@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,11 +12,17 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  String selectedBloodGroup = 'O+';
+  String selectedBloodGroup = 'A+';
 
   final List<String> bloodGroups = [
-    'A+', 'A-', 'B+', 'B-',
-    'O+', 'O-', 'AB+', 'AB-'
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'O+',
+    'O-',
+    'AB+',
+    'AB-',
   ];
 
   Future<void> makePhoneCall(String phone) async {
@@ -27,52 +32,38 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<String> getUserArea() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user!.uid)
-        .get();
 
-    return doc.data()?['area'] ?? "";
-  }
-
-  Stream<List<DonorModel>> donorStream(String bloodGroup, String area) {
+  Stream<List<DonorModel>> donorStream(String bloodGroup) {
     return FirebaseFirestore.instance
-        .collection('users')
+          .collection('users')
         .where('bloodGroup', isEqualTo: bloodGroup)
-        .where('area', isEqualTo: area)
-        .where('isActive', isEqualTo: true)
+        // .where('isActive', isEqualTo: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => DonorModel.fromMap(doc.id, doc.data()))
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => DonorModel.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search Donor'),
-      ),
+      appBar: AppBar(title: const Text('Search Donor')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🩸 SELECT BLOOD GROUP
             const Text(
               'Select Blood Group',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
 
             Wrap(
-              spacing: 8,
-              runSpacing: 10,
+              spacing: 5,
+              runSpacing: 5,
               children: bloodGroups.map((bg) {
                 return ChoiceChip(
                   showCheckmark: false,
@@ -109,92 +100,81 @@ class _SearchScreenState extends State<SearchScreen> {
             /// 🔍 RESULT LABEL
             Text(
               'Available Donors for $selectedBloodGroup',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
 
             const SizedBox(height: 12),
 
             /// 👥 DONOR LIST
             Expanded(
-              child: FutureBuilder<String>(
-                future: getUserArea(),
+              child: StreamBuilder<List<DonorModel>>(
+                stream: donorStream(selectedBloodGroup),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  final area = snapshot.data ?? "";
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text("No donors found in your area"),
+                    );
+                  }
 
-                  return StreamBuilder<List<DonorModel>>(
-                    stream: donorStream(selectedBloodGroup, area),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+                  final donors = snapshot.data!;
 
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text("No donors found in your area"),
-                        );
-                      }
-
-                      final donors = snapshot.data!;
-
-                      return ListView.builder(
-                        itemCount: donors.length,
-                        itemBuilder: (_, i) {
-                          final donor = donors[i];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Row(
-                                children: [
-                                  /// 👤 AVATAR
-                                  const CircleAvatar(
-                                    radius: 22,
-                                    child: Icon(Icons.person),
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  /// INFO
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          donor.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "${donor.bloodGroup} • ${donor.department} • ${donor.area}",
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  /// 📞 CALL
-                                  IconButton(
-                                    icon: const Icon(Icons.call, color: Colors.green),
-                                    onPressed: () {
-                                      makePhoneCall(donor.phone);
-                                    },
-                                  ),
-                                ],
+                  return ListView.builder(
+                    itemCount: donors.length,
+                    itemBuilder: (_, i) {
+                      final donor = donors[i];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              /// 👤 AVATAR
+                              const CircleAvatar(
+                                radius: 22,
+                                child: Icon(Icons.person),
                               ),
-                            ),
-                          );
-                        },
+                              const SizedBox(width: 12),
+
+                              /// INFO
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      donor.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "${donor.bloodGroup} • ${donor.department} • ${donor.area}",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              /// 📞 CALL
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.call,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () {
+                                  makePhoneCall(donor.phone);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   );
