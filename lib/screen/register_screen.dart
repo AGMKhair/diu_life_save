@@ -92,10 +92,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           .doc(uid)
           .set(donor.toMap());
 
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (route) => false,
       );
+
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Registration failed')),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/screen/edit_profile_screen.dart';
+import 'package:diu_life_save/screen/splash_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,17 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('My Profile'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.login),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SplashScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
               Navigator.push(
@@ -34,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               );
             },
-          )
+          ),
         ],
       ),
       body: FutureBuilder<DonorModel?>(
