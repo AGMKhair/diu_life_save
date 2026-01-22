@@ -34,7 +34,6 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('My Profile'),
         centerTitle: true,
         actions: [
-          /// ✏️ Edit
           IconButton(
             icon: const Icon(Icons.edit_outlined, color: AppColors.diuGreen),
             onPressed: () async {
@@ -49,8 +48,6 @@ class ProfileScreen extends StatelessWidget {
               }
             },
           ),
-
-          /// 📝 Post
           IconButton(
             icon: const Icon(Icons.post_add, color: Colors.amber),
             onPressed: () {
@@ -62,21 +59,15 @@ class ProfileScreen extends StatelessWidget {
               );
             },
           ),
-
-          /// 🚪 Logout
           IconButton(
             icon: const Icon(Icons.logout, color: AppColors.primaryRed),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => SplashScreen()),
-              );
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushAndRemoveUntil( context, MaterialPageRoute(builder: (_) => SplashScreen()), (route) => false,);
             },
           ),
         ],
       ),
-
-      /// 🔥 LIVE PROFILE STREAM
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -100,8 +91,6 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-
-                /// 👤 BASIC INFO
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -141,10 +130,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
-                /// 📋 DETAILS
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -189,7 +175,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  /// 🔴 Blood group badge
   Widget _badge(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
