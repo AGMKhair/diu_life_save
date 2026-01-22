@@ -1,5 +1,4 @@
 
-import 'package:diu_life_save/screen/login_screen.dart';
 import 'package:diu_life_save/screen/splash_screen.dart';
 import 'package:diu_life_save/theme/app_theme.dart';
 import 'package:flutter/material.dart';

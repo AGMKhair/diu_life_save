@@ -166,7 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          donor.name!,
+                                          donor.name,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -187,7 +187,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   IconButton(
                                     icon: const Icon(Icons.call, color: Colors.green),
                                     onPressed: () {
-                                      makePhoneCall(donor.phone!);
+                                      makePhoneCall(donor.phone);
                                     },
                                   ),
                                 ],

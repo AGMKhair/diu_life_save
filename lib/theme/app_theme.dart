@@ -1,6 +1,5 @@
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 // class AppTheme {
 //   static ThemeData get lightTheme => ThemeData(

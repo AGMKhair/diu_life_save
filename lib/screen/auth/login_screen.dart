@@ -1,4 +1,5 @@
 import 'package:diu_life_save/screen/home_screen.dart';
+import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
@@ -42,10 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint(e.message);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Login failed")),
+      AppSnackBar.showError(
+        context,
+        message: 'Please check your credentials and try again.',
       );
+
     } finally {
       setState(() => isLoading = false);
     }
