@@ -53,6 +53,7 @@ flutter_icons:
   android: true
   ios: true
   image_path: assets/images/app_icon.jpeg
+  background_color: "#FFFFFF"
   min_sdk_android: 21
 
 

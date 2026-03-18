@@ -22,6 +22,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   late TextEditingController nameController;
   late TextEditingController departmentController;
+  late TextEditingController batchController; // Added batch controller
   late TextEditingController phoneController;
   late TextEditingController ageController;
   late TextEditingController weightController;
@@ -49,6 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     nameController = TextEditingController(text: widget.model.name);
     departmentController = TextEditingController(text: widget.model.department);
+    batchController = TextEditingController(text: widget.model.batch); // Added batch init
     phoneController = TextEditingController(text: widget.model.phone);
     ageController = TextEditingController(text: widget.model.age.toString());
     weightController = TextEditingController(
@@ -96,6 +98,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       name: nameController.text.trim(),
       phone: phoneController.text.trim(),
       department: departmentController.text.trim(),
+      batch: batchController.text.trim(), // Added batch
       age: int.tryParse(ageController.text.trim()) ?? 0,
       weight: int.tryParse(weightController.text.trim()) ?? 0,
       bloodGroup: selectedBloodGroup,
@@ -146,6 +149,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     _field(nameController, 'Full Name', Icons.person),
                     _field(departmentController, 'Department', Icons.school),
+                    _field(batchController, 'Batch', Icons.groups_outlined), // Added Batch UI
                     _field(
                       phoneController,
                       'Mobile Number',

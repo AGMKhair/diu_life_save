@@ -12,17 +12,12 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  String selectedBloodGroup = 'A+';
+  // ১. ডিফল্টভাবে 'All' সিলেক্ট করা থাকবে
+  String selectedBloodGroup = 'All';
 
   final List<String> bloodGroups = [
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'O+',
-    'O-',
-    'AB+',
-    'AB-',
+    'All', // 'All' অপশন যোগ করা হয়েছে
+    'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-',
   ];
 
   Future<void> makePhoneCall(String phone) async {
@@ -32,35 +27,46 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-
+  // স্ট্রিম ফাংশনটি আপডেট করা হয়েছে
   Stream<List<DonorModel>> donorStream(String bloodGroup) {
-    return FirebaseFirestore.instance
-          .collection('users')
-        .where('bloodGroup', isEqualTo: bloodGroup)
-        // .where('isActive', isEqualTo: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => DonorModel.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+    Query query = FirebaseFirestore.instance.collection('users');
+
+    // ব্লাড গ্রুপ 'All' না হলে ফিল্টার করবে
+    if (bloodGroup != 'All') {
+      query = query.where('bloodGroup', isEqualTo: bloodGroup);
+    }
+
+    return query.snapshots().map(
+          (snapshot) {
+        final now = DateTime.now();
+        return snapshot.docs
+            .map((doc) => DonorModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+            .where((donor) {
+          // ২. ফিল্টার লজিক:
+          // (a) isAvailable ট্রু হতে হবে
+          // (b) lastDonationDate নেই (নতুন ডোনার) অথবা ১২০ দিন (৪ মাস) পার হয়েছে
+
+          bool isTimeReady = true;
+          if (donor.lastDonationDate != null) {
+            final difference = now.difference(donor.lastDonationDate!).inDays;
+            isTimeReady = difference >= 120; // ৪ মাস = ১২০ দিন ধরা হয়েছে
+          }
+
+          return donor.isAvailable && isTimeReady;
+        }).toList();
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Donor')),
+      appBar: AppBar(title: const Text('Available Donor')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Select Blood Group',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-
             Wrap(
               spacing: 5,
               runSpacing: 5,
@@ -97,15 +103,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
             const SizedBox(height: 20),
 
-            /// 🔍 RESULT LABEL
             Text(
-              'Available Donors for $selectedBloodGroup',
+              'Available Donors: $selectedBloodGroup',
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
 
             const SizedBox(height: 12),
 
-            /// 👥 DONOR LIST
             Expanded(
               child: StreamBuilder<List<DonorModel>>(
                 stream: donorStream(selectedBloodGroup),
@@ -116,7 +120,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
-                      child: Text("No donors found in your area"),
+                      child: Text("No donors available at this moment"),
                     );
                   }
 
@@ -128,51 +132,23 @@ class _SearchScreenState extends State<SearchScreen> {
                       final donor = donors[i];
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Row(
-                            children: [
-                              /// 👤 AVATAR
-                              const CircleAvatar(
-                                radius: 22,
-                                child: Icon(Icons.person),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: AppColors.primaryRed.withOpacity(0.1),
+                            child: Text(
+                              donor.bloodGroup,
+                              style: TextStyle(
+                                color: AppColors.primaryRed,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
-                              const SizedBox(width: 12),
-
-                              /// INFO
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      donor.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "${donor.bloodGroup} • ${donor.department} • ${donor.area}",
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              /// 📞 CALL
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.call,
-                                  color: Colors.green,
-                                ),
-                                onPressed: () {
-                                  makePhoneCall(donor.phone);
-                                },
-                              ),
-                            ],
+                            ),
+                          ),
+                          title: Text(donor.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text("${donor.department} • ${donor.area}"),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.call, color: Colors.green),
+                            onPressed: () => makePhoneCall(donor.phone),
                           ),
                         ),
                       );

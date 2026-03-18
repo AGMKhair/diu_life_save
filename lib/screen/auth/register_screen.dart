@@ -24,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final departmentController = TextEditingController();
+  final batchController = TextEditingController(); // Added batch controller
 
   final List<String> bloodGroups = [
     'A+',
@@ -64,7 +65,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (nameController.text.isEmpty ||
         phoneController.text.isEmpty ||
         passwordController.text.isEmpty ||
-        departmentController.text.isEmpty) {
+        departmentController.text.isEmpty ||
+        batchController.text.isEmpty) { // Added batch check
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
@@ -89,6 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         name: nameController.text.trim(),
         phone: phone,
         department: departmentController.text.trim(),
+        batch: batchController.text.trim(), // Added batch
         area: selectedArea,
         bloodGroup: selectedBloodGroup,
         lastDonationDate: lastDonationDate,
@@ -163,6 +166,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       label: 'Department',
                       icon: Icons.school_outlined,
                       controller: departmentController,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _Field( // Added Batch field in UI
+                      label: 'Batch',
+                      icon: Icons.groups_outlined,
+                      controller: batchController,
                     ),
 
                     const SizedBox(height: 16),

@@ -5,6 +5,7 @@ class DonorModel {
   final String name;
   final String phone;
   final String department;
+  final String batch; // Added batch
   final int age;
   final int weight;
   final String bloodGroup;
@@ -18,6 +19,7 @@ class DonorModel {
     required this.name,
     required this.phone,
     required this.department,
+    required this.batch, // Added batch
     required this.age,
     required this.weight,
     required this.bloodGroup,
@@ -33,6 +35,7 @@ class DonorModel {
       name: map['name'] ?? "",
       phone: map['phone'] ?? "",
       department: map['department'] ?? "",
+      batch: map['batch'] ?? "", // Added batch
       age: (map['age'] ?? 0).toInt(),
       weight: (map['weight'] ?? 0).toInt(),
       bloodGroup: map['bloodGroup'] ?? "",
@@ -50,6 +53,7 @@ class DonorModel {
       "name": name,
       "phone": phone,
       "department": department,
+      "batch": batch, // Added batch
       "age": age,
       "weight": weight,
       "bloodGroup": bloodGroup,

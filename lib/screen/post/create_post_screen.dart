@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/blood_request_model.dart';
+import 'package:diu_life_save/screen/post/post_details_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -64,6 +65,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
+
+      if (requiredDate == null || requiredTime == null) {
+        AppSnackBar.showError(context, message: "Please select date and time");
+        return;
+      }
 
       final requiredDateTime = DateTime(
         requiredDate!.year,
@@ -292,6 +298,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ],
             ),
           ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PostDetailsScreen()),
+          );
+        },
+        backgroundColor: AppColors.primaryRed,
+        tooltip: 'My Blood Requests',
+        child: const Icon(
+          Icons.list,
+          color: Colors.white,
         ),
       ),
     );
