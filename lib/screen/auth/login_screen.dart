@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
 
@@ -31,28 +32,38 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       setState(() => isLoading = true);
 
-      final email = "$phone@diu.com";
+      // 1. Get user document from Firestore using the phone number
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(phone)
+          .get();
 
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      if (!userDoc.exists) {
+        AppSnackBar.showError(context, message: 'User not found');
+        return;
+      }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } on FirebaseAuthException catch (e) {
-      AppSnackBar.showError(
-        context,
-        message: 'Please check your credentials and try again.',
-      );
+      // 2. Verify password
+      final userData = userDoc.data();
+      if (userData != null && userData['password'] == password) {
+        // Success - Save UID (phone) locally
+        await UserPrefs.setUid(phone);
+        
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        AppSnackBar.showError(context, message: 'Incorrect password');
+      }
 
+    } catch (e) {
+      AppSnackBar.showError(context, message: 'Login Error: ${e.toString()}');
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

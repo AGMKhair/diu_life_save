@@ -1,7 +1,7 @@
 import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/screen/auth/login_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -16,13 +16,18 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final uid = await UserPrefs.getUid();
+    
     Timer(const Duration(seconds: 2), () {
-      final user = FirebaseAuth.instance.currentUser;
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              (user != null) ? const HomeScreen() : const LoginScreen(),
+          builder: (_) => (uid != null) ? const HomeScreen() : const LoginScreen(),
         ),
       );
     });
@@ -36,10 +41,8 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // DIU LOGO
             Image.asset('assets/images/diu_logo.png', height: 90),
             const SizedBox(height: 24),
-
             const Text(
               'Campus Blood Donorly',
               style: TextStyle(
@@ -49,7 +52,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 8),
-
             const Text(
               'Save a Life. Donate Blood.',
               style: TextStyle(fontSize: 14, color: AppColors.textSecondary),

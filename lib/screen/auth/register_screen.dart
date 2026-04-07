@@ -3,7 +3,7 @@ import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -24,7 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final departmentController = TextEditingController();
-  final batchController = TextEditingController(); // Added batch controller
+  final batchController = TextEditingController();
 
   final List<String> bloodGroups = [
     'A+',
@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         phoneController.text.isEmpty ||
         passwordController.text.isEmpty ||
         departmentController.text.isEmpty ||
-        batchController.text.isEmpty) { // Added batch check
+        batchController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
@@ -77,21 +77,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => isLoading = true);
 
       final phone = phoneController.text.trim();
-      final email = "$phone@diu.com";
 
-      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: passwordController.text,
-      );
+      // 1. Check if user already exists
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(phone).get();
+      if (userDoc.exists) {
+        AppSnackBar.showError(context, message: 'Phone number already registered');
+        return;
+      }
 
-      final uid = cred.user!.uid;
-
+      // 2. Prepare Donor Model
       final donor = DonorModel(
-        id: uid,
+        id: phone, // Use phone as ID
+        password: passwordController.text.trim(),
         name: nameController.text.trim(),
         phone: phone,
         department: departmentController.text.trim(),
-        batch: batchController.text.trim(), // Added batch
+        batch: batchController.text.trim(),
         area: selectedArea,
         bloodGroup: selectedBloodGroup,
         lastDonationDate: lastDonationDate,
@@ -100,20 +101,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
         isAvailable: true,
       );
 
+      // 3. Save to Firestore
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(uid)
+          .doc(phone)
           .set(donor.toMap());
 
+      // 4. Save UID locally
+      await UserPrefs.setUid(phone);
+
+      // 5. Navigate to Home
+      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (route) => false,
+            (route) => false,
       );
-    } on FirebaseAuthException catch (e) {
-      AppSnackBar.showError(context, message: 'Registration failed try again.');
+    } catch (e) {
+      AppSnackBar.showError(context, message: 'Registration failed: ${e.toString()}');
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -170,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     const SizedBox(height: 16),
 
-                    _Field( // Added Batch field in UI
+                    _Field(
                       label: 'Batch',
                       icon: Icons.groups_outlined,
                       controller: batchController,

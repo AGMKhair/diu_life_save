@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DonorModel {
   final String id;
+  final String? password;
   final String name;
   final String phone;
   final String department;
@@ -16,6 +17,7 @@ class DonorModel {
 
   DonorModel({
     required this.id,
+    required this.password,
     required this.name,
     required this.phone,
     required this.department,
@@ -32,6 +34,7 @@ class DonorModel {
   factory DonorModel.fromMap(String id, Map<String, dynamic> map) {
     return DonorModel(
       id: id,
+      password: map['password'] ?? "",
       name: map['name'] ?? "",
       phone: map['phone'] ?? "",
       department: map['department'] ?? "",
@@ -51,6 +54,7 @@ class DonorModel {
   Map<String, dynamic> toMap() {
     return {
       "name": name,
+      "password": password,
       "phone": phone,
       "department": department,
       "batch": batch, // Added batch

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -91,14 +91,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> saveProfile() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final uid = await UserPrefs.getUid();
+    
+    if (uid == null) {
+      AppSnackBar.showError(context, message: 'User session expired. Please login again.');
+      return;
+    }
 
     final model = DonorModel(
       id: uid,
+      password: widget.model.password, // Keep the existing password
       name: nameController.text.trim(),
       phone: phoneController.text.trim(),
       department: departmentController.text.trim(),
-      batch: batchController.text.trim(), // Added batch
+      batch: batchController.text.trim(),
       age: int.tryParse(ageController.text.trim()) ?? 0,
       weight: int.tryParse(weightController.text.trim()) ?? 0,
       bloodGroup: selectedBloodGroup,
@@ -115,6 +121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     AppSnackBar.showSuccess(context, message: 'Profile Updated Successfully');
 
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -155,6 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       'Mobile Number',
                       Icons.phone,
                       type: TextInputType.phone,
+                      enabled: false, // Don't allow phone edit as it's the UID
                     ),
                     _field(
                       ageController,
@@ -252,11 +260,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String label,
     IconData icon, {
     TextInputType type = TextInputType.text,
+    bool enabled = true,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextField(
         controller: c,
+        enabled: enabled,
         keyboardType: type,
         decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
       ),

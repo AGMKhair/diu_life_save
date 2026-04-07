@@ -6,6 +6,7 @@ import 'package:diu_life_save/screen/profile/profile_screen.dart';
 import 'package:diu_life_save/screen/search_screen.dart';
 import 'package:diu_life_save/screen/post/view_request_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadMyBloodGroup() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final uid = await UserPrefs.getUid();
 
     final doc = await FirebaseFirestore.instance
         .collection('users')

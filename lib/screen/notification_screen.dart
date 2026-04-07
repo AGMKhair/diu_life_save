@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/model/donor_model.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
@@ -24,7 +25,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   /// 🔹 Logged in user blood group
   Future<void> _loadMyBloodGroup() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final uid = await UserPrefs.getUid();
 
     final doc = await FirebaseFirestore.instance
         .collection('users')
