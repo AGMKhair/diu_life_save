@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diu_life_save/screen/auth/forgot_pin_screen.dart';
 import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:diu_life_save/util/user_prefs.dart';
@@ -120,7 +121,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPinScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text('Forgot Password?'),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
 
                       SizedBox(
                         width: double.infinity,
