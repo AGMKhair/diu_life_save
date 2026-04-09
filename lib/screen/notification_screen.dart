@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/model/donor_model.dart';
 import 'package:diu_life_save/util/user_prefs.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -45,6 +45,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return FirebaseFirestore.instance
         .collection('posts')
         .where('bloodGroup', isEqualTo: myBloodGroup)
+        .where('requiredDateTime', isGreaterThanOrEqualTo: DateTime.now())
         .snapshots();
   }
 
@@ -125,17 +126,35 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
             const SizedBox(height: 12),
 
-            _infoRow(Icons.person, 'Patient', data.patientName),
-            _infoRow(Icons.medical_services, 'Problem', data.problem),
-            _infoRow(Icons.bloodtype, 'Units', data.units.toString()),
-            _infoRow(Icons.local_hospital, 'Hospital', data.hospital),
-            _infoRow(Icons.location_on, 'Location', data.location),
+            /// 🧑 PATIENT NAME
+            _infoRow(Icons.person_outline, 'Patient', data.patientName),
+
+            /// 🩺 PROBLEM
+            _infoRow(Icons.medical_information_outlined, 'Problem', data.problem),
+
+            /// 🧪 UNITS
             _infoRow(
-              Icons.calendar_month,
-              'Required',
-              _formatDate(data.requiredDateTime),
+              Icons.bloodtype_outlined,
+              'Required Units',
+              '${data.units} Bags',
             ),
-            _infoRow(Icons.note, 'Note', data.note.isNotEmpty ? data.note : '—'),
+
+            /// 🏥 HOSPITAL
+            _infoRow(Icons.local_hospital_outlined, 'Hospital', data.hospital),
+
+            /// 📍 LOCATION
+            _infoRow(Icons.location_on_outlined, 'Location', data.location),
+
+            /// 📅 DATE & TIME
+            _infoRow(
+              Icons.calendar_month_outlined,
+              'Date & Time',
+              DateFormat('dd MMM yyyy • hh:mm a')
+                  .format(data.requiredDateTime),
+            ),
+
+            /// 📝 NOTES (Optional)
+            _infoRow(Icons.note_outlined, 'Notes', data.note.isNotEmpty ? data.note : '—'),
 
             const SizedBox(height: 16),
 
@@ -187,7 +206,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        emergency ? 'Emergency' : 'Normal',
+        emergency ? 'Emergency' : 'Pending',
         style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
     );
@@ -220,10 +239,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 
   void _callNumber(String phone) async {

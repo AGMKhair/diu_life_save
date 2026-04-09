@@ -147,7 +147,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('posts')
-                  .orderBy("createdAt", descending: true)
+                  .where('requiredDateTime', isGreaterThanOrEqualTo: DateTime.now())
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -162,6 +162,9 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
                     .map((e) => BloodRequestModel.fromMap(
                     e.data() as Map<String, dynamic>, e.id))
                     .toList();
+
+                // Order by requiredDateTime instead of createdAt since we can't use multiple orders with current query easily
+                allPosts.sort((a, b) => a.requiredDateTime.compareTo(b.requiredDateTime));
 
                 // FILTER
                 final filteredPosts = allPosts.where((post) {

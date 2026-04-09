@@ -3,7 +3,7 @@ import 'package:diu_life_save/model/blood_request_model.dart';
 import 'package:diu_life_save/screen/post/post_details_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -63,8 +63,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> submitPost() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      final uid = await UserPrefs.getUid();
+      if (uid == null) {
+        AppSnackBar.showError(context, message: "Please login to post");
+        return;
+      }
 
       if (requiredDate == null || requiredTime == null) {
         AppSnackBar.showError(context, message: "Please select date and time");
@@ -83,11 +86,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       final model = BloodRequestModel(
         id: "",
-        uid: user.uid,
+        uid: uid,
         patientName: patientNameCtrl.text.trim(),
         problem: problemCtrl.text.trim(),
         bloodGroup: selectedBloodGroup,
-        units: int.parse(unitCtrl.text.trim()),
+        units: int.parse(unitCtrl.text.trim().isEmpty ? '0' : unitCtrl.text.trim()),
         hospital: hospitalCtrl.text.trim(),
         location: locationCtrl.text.trim(),
         phone: phoneCtrl.text.trim(),
