@@ -80,11 +80,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
               .toList();
 
           final now = DateTime.now();
+          
+          // All future requests
           final runningRequests = allRequests
               .where((r) => r.requiredDateTime.isAfter(now))
               .toList();
+              
+          // Only today's expired requests
           final expiredRequests = allRequests
-              .where((r) => r.requiredDateTime.isBefore(now))
+              .where((r) {
+                final isExpired = r.requiredDateTime.isBefore(now);
+                final isToday = r.requiredDateTime.year == now.year &&
+                                r.requiredDateTime.month == now.month &&
+                                r.requiredDateTime.day == now.day;
+                return isExpired && isToday;
+              })
               .toList();
 
           // Sort: Running requests (nearest first), Expired (latest first)
@@ -100,11 +110,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ],
               if (expiredRequests.isNotEmpty) ...[
                 const SizedBox(height: 20),
-                _sectionHeader('Time Over / Inactive', Colors.grey),
+                _sectionHeader('Time Over / Inactive (Today)', Colors.grey),
                 ...expiredRequests.map((req) => _requestCard(req, true)),
               ],
               if (runningRequests.isEmpty && expiredRequests.isEmpty)
-                const Center(child: Text('No requests found')),
+                const Center(child: Text('No active requests found')),
             ],
           );
         },
