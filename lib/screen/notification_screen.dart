@@ -40,12 +40,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  /// 🔥 Active notifications stream
+  /// 🔥 Notification stream (Only filtering by blood group to avoid index issues)
   Stream<QuerySnapshot> _notificationStream() {
     return FirebaseFirestore.instance
         .collection('posts')
         .where('bloodGroup', isEqualTo: myBloodGroup)
-        .where('requiredDateTime', isGreaterThanOrEqualTo: DateTime.now())
         .snapshots();
   }
 
@@ -72,132 +71,201 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
-              child: Text('No active requests for your blood group'),
+              child: Text('No requests found for your blood group'),
             );
           }
 
-          final requests = snapshot.data!.docs
+          final allRequests = snapshot.data!.docs
               .map((doc) => BloodRequestModel.fromFirestore(doc))
               .toList();
 
-          return ListView.builder(
+          final now = DateTime.now();
+          final runningRequests = allRequests
+              .where((r) => r.requiredDateTime.isAfter(now))
+              .toList();
+          final expiredRequests = allRequests
+              .where((r) => r.requiredDateTime.isBefore(now))
+              .toList();
+
+          // Sort: Running requests (nearest first), Expired (latest first)
+          runningRequests.sort((a, b) => a.requiredDateTime.compareTo(b.requiredDateTime));
+          expiredRequests.sort((a, b) => b.requiredDateTime.compareTo(a.requiredDateTime));
+
+          return ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: requests.length,
-            itemBuilder: (_, index) {
-              return _requestCard(requests[index]);
-            },
+            children: [
+              if (runningRequests.isNotEmpty) ...[
+                _sectionHeader('Running Requests', Colors.green),
+                ...runningRequests.map((req) => _requestCard(req, false)),
+              ],
+              if (expiredRequests.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                _sectionHeader('Time Over / Inactive', Colors.grey),
+                ...expiredRequests.map((req) => _requestCard(req, true)),
+              ],
+              if (runningRequests.isEmpty && expiredRequests.isEmpty)
+                const Center(child: Text('No requests found')),
+            ],
           );
         },
       ),
     );
   }
 
+  Widget _sectionHeader(String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, left: 4),
+      child: Row(
+        children: [
+          Container(width: 4, height: 18, color: color),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// 🩸 REQUEST CARD
-  Widget _requestCard(BloodRequestModel data) {
+  Widget _requestCard(BloodRequestModel data, bool isExpired) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: isExpired ? 1 : 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: isExpired ? BorderSide(color: Colors.grey.shade300) : BorderSide.none,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// 🔴 TOP
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+      child: Opacity(
+        opacity: isExpired ? 0.7 : 1.0,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// 🔴 TOP
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _bloodBadge(data.bloodGroup, isExpired),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Blood Needed',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  _statusBadge(data.isEmergency, isExpired),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              _infoRow(Icons.person_outline, 'Patient', data.patientName),
+              _infoRow(Icons.medical_information_outlined, 'Problem', data.problem),
+              _infoRow(Icons.bloodtype_outlined, 'Required Units', '${data.units} Bags'),
+              _infoRow(Icons.local_hospital_outlined, 'Hospital', data.hospital),
+              _infoRow(Icons.location_on_outlined, 'Location', data.location),
+
+              /// 📅 DATE & TIME
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
                   children: [
-                    _bloodBadge(data.bloodGroup),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Blood Needed',
-                      style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    const Icon(Icons.calendar_month_outlined, size: 18, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(color: Colors.black, fontSize: 14),
+                          children: [
+                            const TextSpan(
+                              text: 'Date & Time: ',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            TextSpan(
+                              text: DateFormat('dd MMM yyyy • hh:mm a').format(data.requiredDateTime),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                    if (isExpired)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Time Over',
+                          style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                   ],
                 ),
-                _statusBadge(data.isEmergency),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            /// 🧑 PATIENT NAME
-            _infoRow(Icons.person_outline, 'Patient', data.patientName),
-
-            /// 🩺 PROBLEM
-            _infoRow(Icons.medical_information_outlined, 'Problem', data.problem),
-
-            /// 🧪 UNITS
-            _infoRow(
-              Icons.bloodtype_outlined,
-              'Required Units',
-              '${data.units} Bags',
-            ),
-
-            /// 🏥 HOSPITAL
-            _infoRow(Icons.local_hospital_outlined, 'Hospital', data.hospital),
-
-            /// 📍 LOCATION
-            _infoRow(Icons.location_on_outlined, 'Location', data.location),
-
-            /// 📅 DATE & TIME
-            _infoRow(
-              Icons.calendar_month_outlined,
-              'Date & Time',
-              DateFormat('dd MMM yyyy • hh:mm a')
-                  .format(data.requiredDateTime),
-            ),
-
-            /// 📝 NOTES (Optional)
-            _infoRow(Icons.note_outlined, 'Notes', data.note.isNotEmpty ? data.note : '—'),
-
-            const SizedBox(height: 16),
-
-            /// 📞 CALL
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.call),
-                label: const Text('Call Requester'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryRed,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () => _callNumber(data.phone),
               ),
-            ),
-          ],
+
+              _infoRow(Icons.note_outlined, 'Notes', data.note.isNotEmpty ? data.note : '—'),
+
+              const SizedBox(height: 16),
+
+              /// 📞 CALL
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.call),
+                  label: const Text('Call Requester'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isExpired ? Colors.grey : AppColors.primaryRed,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => _callNumber(data.phone),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   /// 🩸 Blood badge
-  Widget _bloodBadge(String group) {
+  Widget _bloodBadge(String group, bool isExpired) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primaryRed,
+        color: isExpired ? Colors.grey : AppColors.primaryRed,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         group,
-        style: const TextStyle(
-            color: Colors.white, fontWeight: FontWeight.bold),
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
   }
 
   /// 🚨 Status badge
-  Widget _statusBadge(bool emergency) {
+  Widget _statusBadge(bool emergency, bool isExpired) {
+    if (isExpired) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'Inactive',
+          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+        ),
+      );
+    }
     final color = emergency ? Colors.red : Colors.orange;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -223,13 +291,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style:
-                const TextStyle(color: Colors.black, fontSize: 14),
+                style: const TextStyle(color: Colors.black, fontSize: 14),
                 children: [
                   TextSpan(
                     text: '$title: ',
-                    style:
-                    const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   TextSpan(text: value),
                 ],
