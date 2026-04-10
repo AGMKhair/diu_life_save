@@ -141,6 +141,7 @@ class AboutScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _buildPartnerCard(
+                          bg: Color(0xFFDFD9D9),
                           'assets/images/spont_logo.png', // Using app logo as placeholder for Spont IT
                           'SponT IT',
                         ),
@@ -248,11 +249,11 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPartnerCard(String imagePath, String name) {
+  Widget _buildPartnerCard(String imagePath, String name, {Color bg = Colors.white}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
