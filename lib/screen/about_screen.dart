@@ -11,157 +11,278 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.bg,
+      appBar: AppBar(
+        title: const Text('About Us', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textDark,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Logo with shadow
-            Image.asset(
-              'assets/images/diu_logo.png',
-              height: 100,
+            const SizedBox(height: 20),
+            // App Logo Section
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    )
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/app_logo.jpeg',
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ),
-
             const SizedBox(height: 16),
-
-            // App Name
             const Text(
               'Campus Blood Donorly',
               style: TextStyle(
-                fontSize: 26,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
+                color: AppColors.primaryRed,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-
-            // About Us Section
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            const Text(
+              'A Humanitarian Bridge',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                letterSpacing: 1.2,
               ),
-              elevation: 2,
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: RichText(
-                  textAlign: TextAlign.justify,
-                  text: const TextSpan(
+            ),
+            const SizedBox(height: 30),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Main Description
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                    ),
+                    child: const Text(
+                      'Campus Blood Donorly is not just an app; it is a humanitarian bridge. Operated with the dedicated support of the Law Department of Dhaka International University (DIU), this volunteer-driven platform ensures quick communication between blood donors and recipients in critical moments. Our goal is to build a blood-shortage-free campus and society through the proper use of technology.',
+                      textAlign: TextAlign.justify,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.6,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Goals Section
+                  const Text(
+                    '🤝 Our Goals and Objectives',
                     style: TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildGoalItem(
+                    Icons.flash_on_rounded,
+                    'Fast Service',
+                    'Finding blood donors within just a few clicks during emergencies.',
+                  ),
+                  _buildGoalItem(
+                    Icons.connect_without_contact_rounded,
+                    'Easy Connection',
+                    'A simple way to directly communicate with blood donors.',
+                  ),
+                  _buildGoalItem(
+                    Icons.favorite_rounded,
+                    'Awareness',
+                    'Encouraging and inspiring the younger generation to donate blood.',
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Partners/Sponsors
+                  const Text(
+                    'Supported & Sponsored By',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
                     children: [
-                      TextSpan(
-                        text:
-                        'Campus Blood Donorly is a voluntary blood donation platform operated with the support of the ',
-                      ),
-                      TextSpan(
-                        text: 'Department of Law, Dhaka International University (DIU). ',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: _buildPartnerCard(
+                          'assets/images/law_club.jpeg',
+                          'Law Club, DIU',
                         ),
                       ),
-                      TextSpan(
-                        text:
-                        'The app connects blood donors with patients quickly during emergencies.',
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildPartnerCard(
+                          'assets/images/spont_logo.png', // Using app logo as placeholder for Spont IT
+                          'SponT IT',
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
 
-            // Team Members Section
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 2,
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Team Members',
-                      style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 12),
-                    Text('• Project Coordinator', style: TextStyle(fontSize: 16)),
-                    Text('• App Development Team', style: TextStyle(fontSize: 16)),
-                    Text('• Volunteer & Donor Management Team', style: TextStyle(fontSize: 16)),
-                    Text('• Awareness & Communication Team', style: TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+                  const SizedBox(height: 50),
 
-            // Slogan
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.primaryRed.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Donate Blood. Save Life.',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryRed,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            // Developer Info
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Developed by ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    final url = Uri.parse(portfolioLink);
-                    if (await canLaunchUrl(url)) {
-                      launchUrl(url);
-                    }
-                  },
-                  child: Row(
-                    children: [
-                      Text(
-                        developerName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryRed,
+                  // Developer Info
+                  Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Created with ❤️ by',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.link,
-                        size: 16,
-                        color: Colors.blue,
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () => _launchUrl(portfolioLink),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                developerName,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryRed,
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              GestureDetector(
+                                onTap: () async {
+                                  final url = Uri.parse(portfolioLink);
+                                  if (await canLaunchUrl(url)) {
+                                    launchUrl(url);
+                                  }
+                                },
+                                child: const Icon(
+                                  Icons.link,
+                                  size: 24,
+                                  color: Colors.blue,
+                                ),),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildGoalItem(IconData icon, String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryRed.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppColors.primaryRed, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPartnerCard(String imagePath, String name) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Image.asset(
+            imagePath,
+            height: 50,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, size: 50, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
   }
 }

@@ -38,4 +38,4 @@ flutter_icons:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/diu_logo.png
+    - assets/images/
