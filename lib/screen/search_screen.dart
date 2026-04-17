@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diu_life_save/model/donor_model.dart';
+import 'package:diu_life_save/screen/donor_details_screen.dart';
 import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,11 +13,10 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  // ১. ডিফল্টভাবে 'All' সিলেক্ট করা থাকবে
   String selectedBloodGroup = 'All';
 
   final List<String> bloodGroups = [
-    'All', // 'All' অপশন যোগ করা হয়েছে
+    'All',
     'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-',
   ];
 
@@ -27,11 +27,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  // স্ট্রিম ফাংশনটি আপডেট করা হয়েছে
   Stream<List<DonorModel>> donorStream(String bloodGroup) {
     Query query = FirebaseFirestore.instance.collection('users');
 
-    // ব্লাড গ্রুপ 'All' না হলে ফিল্টার করবে
     if (bloodGroup != 'All') {
       query = query.where('bloodGroup', isEqualTo: bloodGroup);
     }
@@ -42,16 +40,11 @@ class _SearchScreenState extends State<SearchScreen> {
         return snapshot.docs
             .map((doc) => DonorModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
             .where((donor) {
-          // ২. ফিল্টার লজিক:
-          // (a) isAvailable ট্রু হতে হবে
-          // (b) lastDonationDate নেই (নতুন ডোনার) অথবা ১২০ দিন (৪ মাস) পার হয়েছে
-
           bool isTimeReady = true;
           if (donor.lastDonationDate != null) {
             final difference = now.difference(donor.lastDonationDate!).inDays;
-            isTimeReady = difference >= 120; // ৪ মাস = ১২০ দিন ধরা হয়েছে
+            isTimeReady = difference >= 120;
           }
-
           return donor.isAvailable && isTimeReady;
         }).toList();
       },
@@ -133,11 +126,20 @@ class _SearchScreenState extends State<SearchScreen> {
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8),
                         child: ListTile(
+                          onTap: () {
+                            // ডোনারের ডিটেইলস স্ক্রিনে নিয়ে যাবে
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DonorDetailsScreen(donor: donor),
+                              ),
+                            );
+                          },
                           leading: CircleAvatar(
                             backgroundColor: AppColors.primaryRed.withOpacity(0.1),
                             child: Text(
                               donor.bloodGroup,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppColors.primaryRed,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,

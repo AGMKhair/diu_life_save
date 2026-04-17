@@ -16,7 +16,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.spontit.agmkhair.diu_life_save"
-    compileSdk = flutter.compileSdkVersion
+    // Android 15 (API 35) support এর জন্য compileSdk 35 করা হলো
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -38,21 +39,18 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.spontit.agmkhair.diu_life_save"
 
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // minSdk 21 (Android 5.0) অথবা 23 (Android 6.0) রাখা নিরাপদ
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        // targetSdk 35 করা হলো লেটেস্ট অ্যান্ড্রয়েড সাপোর্টের জন্য
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
@@ -62,17 +60,10 @@ android {
 }
 
 dependencies {
-
     // Firebase BOM
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-
-    // Firebase Analytics (optional but recommended)
     implementation("com.google.firebase:firebase-analytics")
-
-    // Firebase Authentication
     implementation("com.google.firebase:firebase-auth")
-
-    // Cloud Firestore
     implementation("com.google.firebase:firebase-firestore")
 }
 

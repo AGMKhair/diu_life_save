@@ -38,6 +38,29 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
     }
   }
 
+  Widget buildPoint(String text) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryRed.withOpacity(0.05), // হালকা লাল ব্যাকগ্রাউন্ড
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.volunteer_activism, size: 18, color: AppColors.primaryRed),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,15 +170,87 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('posts')
-                  .where('requiredDateTime', isGreaterThanOrEqualTo: DateTime.now())
-                  .snapshots(),
+                  .where('requiredDateTime', isGreaterThanOrEqualTo: DateTime.now().subtract(const Duration(days: 3)))                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No requests found"));
+                  return SingleChildScrollView(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Card(
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.bloodtype, color: Colors.red, size: 50),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "রক্তদান কেন জরুরি",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    SizedBox(height: 15),
+
+                                    buildPoint("রক্তদান মানুষের জীবন বাঁচাতে সাহায্য করে"),
+                                    buildPoint("দুর্ঘটনা ও অপারেশনে রক্তের প্রয়োজন হয়"),
+                                    buildPoint("রক্ত সঞ্চালন ভালো হয়"),
+                                    buildPoint("নতুন রক্তকণিকা তৈরি হয়"),
+                                    buildPoint("মানসিক তৃপ্তি দেয়"),
+                                    buildPoint("শরীর সুস্থ রাখতে সাহায্য করে"),
+                                    buildPoint("এটি একটি মানবিক দায়িত্ব"),
+
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Card(
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.bloodtype, color: Colors.red, size: 50),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "রক্তদানের সুবিধা",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    SizedBox(height: 15),
+                                    buildPoint("স্বাস্থ্য পরীক্ষা: রক্তদানের মাধ্যমে নিজের শরীরের বিভিন্ন রোগ সম্পর্কে জানা যায়।"),
+                                    buildPoint("হৃদরোগের ঝুঁকি কমায়: নিয়মিত রক্তদান হৃদরোগের ঝুঁকি কমাতে সাহায্য করে।"),
+                                    buildPoint("ক্যান্সারের ঝুঁকি কমায়: কিছু গবেষণায় দেখা গেছে যে, নিয়মিত রক্তদান কিছু ধরনের ক্যান্সারের ঝুঁকি কমাতে সাহায্য করে।"),
+
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
                 }
 
                 final allPosts = snapshot.data!.docs
@@ -305,7 +400,7 @@ class _ViewRequestScreenState extends State<ViewRequestScreen> {
               DateFormat('dd MMM yyyy • hh:mm a')
                   .format(post.requiredDateTime),
             ),
-
+            _infoRow(Icons.call_end_outlined, 'Number', post.phone),
             /// 📝 NOTES (Optional)
             _infoRow(Icons.note_outlined, 'Notes', post.note),
 

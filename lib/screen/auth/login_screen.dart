@@ -4,6 +4,7 @@ import 'package:diu_life_save/screen/home_screen.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,9 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = passwordController.text;
 
     if (phone.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
-      );
+      AppSnackBar.showError(context, message: "Please fill all fields");
+      return;
+    }
+
+    if (phone.length != 11) {
+      AppSnackBar.showError(context, message: "Phone number must be 11 digits");
       return;
     }
 
@@ -103,10 +107,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       TextField(
                         controller: phoneController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.phone,
+                        maxLength: 11,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            // যদি প্রথম ক্যারেক্টার '0' না হয়, তবে ইনপুট নিবে না
+                            if (newValue.text.isNotEmpty && newValue.text[0] != '0') {
+                              return oldValue;
+                            }
+                            return newValue;
+                          }),
+                        ],
                         decoration: const InputDecoration(
                           labelText: 'Phone Number',
                           prefixIcon: Icon(Icons.phone),
+                          counterText: "", // maxLength এর কাউন্টার হাইড করার জন্য
                         ),
                       ),
 

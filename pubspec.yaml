@@ -2,7 +2,7 @@ name: diu_life_save
 description: "Blood Donor project for diu"
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.10.4
@@ -21,6 +21,7 @@ dependencies:
   url_launcher: ^6.2.5
   image_picker: ^1.0.7
   shared_preferences: ^2.2.2
+  package_info_plus: ^4.0.0
 
 dev_dependencies:
   flutter_test:

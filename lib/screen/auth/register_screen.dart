@@ -5,6 +5,7 @@ import 'package:diu_life_save/theme/app_colors.dart';
 import 'package:diu_life_save/util/app_snackbar.dart';
 import 'package:diu_life_save/util/user_prefs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -62,21 +63,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> registerDonor() async {
+    final phone = phoneController.text.trim();
+
     if (nameController.text.isEmpty ||
-        phoneController.text.isEmpty ||
+        phone.isEmpty ||
         passwordController.text.isEmpty ||
         departmentController.text.isEmpty ||
         batchController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
-      );
+      AppSnackBar.showError(context, message: 'Please fill all required fields');
+      return;
+    }
+
+    if (phone.length != 11) {
+      AppSnackBar.showError(context, message: 'Phone number must be 11 digits');
       return;
     }
 
     try {
       setState(() => isLoading = true);
-
-      final phone = phoneController.text.trim();
 
       // 1. Check if user already exists
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(phone).get();
@@ -156,6 +160,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       icon: Icons.phone,
                       type: TextInputType.phone,
                       controller: phoneController,
+                      maxLength: 11,
+                      formatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        TextInputFormatter.withFunction((oldValue, newValue) {
+                          if (newValue.text.isNotEmpty && newValue.text[0] != '0') {
+                            return oldValue;
+                          }
+                          return newValue;
+                        }),
+                      ],
                     ),
 
                     const SizedBox(height: 16),
@@ -275,6 +289,8 @@ class _Field extends StatelessWidget {
   final TextInputType type;
   final TextEditingController controller;
   final bool isPassword;
+  final List<TextInputFormatter>? formatters;
+  final int? maxLength;
 
   const _Field({
     required this.label,
@@ -282,6 +298,8 @@ class _Field extends StatelessWidget {
     required this.controller,
     this.type = TextInputType.text,
     this.isPassword = false,
+    this.formatters,
+    this.maxLength,
   });
 
   @override
@@ -290,7 +308,13 @@ class _Field extends StatelessWidget {
       controller: controller,
       keyboardType: type,
       obscureText: isPassword,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
+      maxLength: maxLength,
+      inputFormatters: formatters,
+      decoration: InputDecoration(
+        labelText: label, 
+        prefixIcon: Icon(icon),
+        counterText: maxLength != null ? "" : null,
+      ),
     );
   }
 }
